@@ -211,6 +211,7 @@ Full architecture and design documentation is available in the [`docs/`](docs/) 
 - [IDE Setup Guide](docs/IDE-setup.md) — Development environment configuration
 
 ---
+## This is designed for educational purpose only and is not backed by Microsoft and is the opinions of the authors and collaborators.
 
 ## License
 
