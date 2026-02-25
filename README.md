@@ -209,7 +209,6 @@ Full architecture and design documentation is available in the [`docs/`](docs/) 
 - [AnalystBot01 Requirements](docs/analystbot01-requirements.md) — Detailed requirements for the Phase 1 triage agent
 - [Architecture Diagram](docs/agentic-soc-diagram.mmd) — Mermaid diagram of system architecture
 - [IDE Setup Guide](docs/IDE-setup.md) — Development environment configuration
-- [Top Threats 2026](docs/top-threats-2026.md) — Threat landscape analysis informing agent design
 
 ---
 
