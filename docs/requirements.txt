@@ -1,0 +1,28 @@
+# Azure SDK
+azure-identity>=1.15.0
+azure-mgmt-securityinsight>=2.0.0b2
+azure-monitor-query>=1.2.0
+
+# Microsoft Graph
+msgraph-sdk>=1.0.0
+
+# HTTP & API
+httpx>=0.27.0
+aiohttp>=3.9.0
+
+# Data Processing
+pandas>=2.2.0
+pydantic>=2.6.0
+
+# Logging & Monitoring
+structlog>=24.1.0
+rich>=13.7.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+
+# Development
+python-dotenv>=1.0.0
+ipykernel>=6.29.0
