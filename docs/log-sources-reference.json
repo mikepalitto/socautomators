@@ -1,0 +1,1869 @@
+{
+  "metadata": {
+    "title": "Log Sources Reference — Threat-Informed Defense Series",
+    "slug": "log-sources-reference",
+    "version": "3.1",
+    "date": "2026-04-13",
+    "author": "Mike Palitto",
+    "organization": "SOC Automators",
+    "platform": "socautomators.substack.com",
+    "series": "Threat-Informed Defense Series | The Agentic SOC",
+    "total_sources": 37,
+    "categories": [
+      "Microsoft-Native",
+      "Network",
+      "Identity & Access",
+      "Endpoint",
+      "Cloud & Infrastructure",
+      "Federated Sources"
+    ],
+    "mitre_attack": {
+      "version": "18.1",
+      "source": "mitre-attack/attack-stix-data",
+      "reference": "references/threat-defense-series/mitre-attack-framework.yaml"
+    },
+    "threat_taxonomy": {
+      "version": "24 threat patterns",
+      "crosswalk": "references/threat-defense-series/threat-crosswalk.yaml",
+      "categories": {
+        "Identity & Credential": [
+          "Infostealer",
+          "AiTM Phishing",
+          "Device Code Phishing",
+          "AI Social Engineering",
+          "Cloud Identity Abuse",
+          "Password Spray",
+          "Leaked Credentials"
+        ],
+        "Email & Social Engineering": [
+          "BEC",
+          "Phishing",
+          "Email Bombing/Vishing"
+        ],
+        "Malware & Ransomware": [
+          "Malware Detection",
+          "Ransomware and Human-Operated Attacks"
+        ],
+        "Data Theft & Exfiltration": [
+          "Data Exfiltration"
+        ],
+        "Cloud & Infrastructure": [
+          "Cloud Workload and Container Compromise",
+          "Vulnerability Exploitation"
+        ],
+        "Access & Trust Abuse": [
+          "Access Broker",
+          "Suspicious Mailbox",
+          "Insider Threats"
+        ],
+        "Nation-State & Advanced": [
+          "Nation-State Cyber Espionage"
+        ],
+        "AI & Agent": [
+          "AI System Attacks",
+          "Agent Runtime Exploit",
+          "Agent Data Leakage",
+          "Agentic Identity",
+          "AI Supply Chain"
+        ]
+      }
+    },
+    "ingestion_patterns": {
+      "analytics_tier": "Events routed to the Analytics tier for real-time detection rules, entity enrichment, and sub-five-minute alert latency. Essential for SIEM — the data lake alone cannot drive real-time alerting.",
+      "data_lake": "Events routed to the Data Lake tier for cost-effective long-term retention; queryable for forensics and hunting but not used for real-time detection rules. Complements analytics tier for full MITRE tactic coverage.",
+      "dual_ingest": "Alert-grade and high-signal events routed to the Analytics tier for real-time detection; full raw event stream routed to the Data Lake for forensics and behavioral analysis. Implemented via a single DCR transformation — one collection point, two routing destinations. Maximizes MITRE coverage across both detection and hunting use cases.",
+      "federated": "Data queried in place from external sources (Azure Databricks, ADLS Gen 2, Microsoft Fabric) without ingestion into Sentinel. Zero ingestion and egress cost. Federated tables appear alongside native tables and are queryable via KQL, notebooks, and MCP tools. One-directional: Sentinel queries the federated source, not the reverse. Ideal for historical data, cross-team datasets, and compliance-constrained data that cannot be copied."
+    },
+    "lake_surfaces": {
+      "graph_analytics": "Sources that create graph nodes/edges for Sentinel Graph traversal, blast radius analysis, and custom graph construction",
+      "notebook_analytics": "Sources whose data benefits from PySpark notebook analysis — ML, statistical, graph algorithms via GraphFrames",
+      "agent_mcp_access": "Sources accessible via Sentinel MCP Server tool collections for AI agent investigation, triage, and entity analysis",
+      "compliance_analytics": "Sources whose lake-tier retention satisfies regulatory requirements (SOX, HIPAA, PCI-DSS, SOC 2, GDPR, NIST 800-53) — immutable audit trails, long-retention evidence preservation, and query-ready compliance reporting without re-ingestion",
+      "data_federation": "Sources or datasets accessible via federated connections to Azure Databricks, ADLS Gen 2, and Microsoft Fabric. Enables query-in-place access to historical archives, cross-team data lakes, and compliance-constrained datasets without ingestion. Federated tables follow the naming pattern <tableName>_<connectorInstanceName> and are queryable from all 4 analytical surfaces."
+    },
+    "source_files": [
+      "soc-log-sources-detection-forensics-hunting-draft.md",
+      "siem-design-decisions-detection-capability-draft.md",
+      "soc-agentic-ai-blueprint.yaml",
+      "references/threat-defense-series/threat-crosswalk.yaml",
+      "references/threat-defense-series/mitre-attack-framework.yaml"
+    ]
+  },
+  "log_sources": [
+    {
+      "source": "Entra ID Sign-in Logs",
+      "category": "Microsoft-Native",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Microsoft Entra ID (native connector — free tier)",
+      "detection_use": "Password spray (multiple failures across accounts from similar ASNs), AiTM session theft signatures, risky sign-ins from unexpected locations or devices, impossible travel, sign-ins from anonymizing networks",
+      "forensic_use": "Credential theft timeline reconstruction — first use of compromised credentials, resources accessed, session evolution across the full attack window",
+      "hunting_use": "Behavioral baselines by user: authentication location, time-of-day, application, and device patterns. Deviations are hunting leads.",
+      "threats_covered": [
+        "Infostealer",
+        "AiTM Phishing",
+        "Device Code Phishing",
+        "Cloud Identity Abuse",
+        "Password Spray",
+        "Leaked Credentials",
+        "Human-Op Ransomware",
+        "Access Broker"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0003",
+        "TA0006"
+      ],
+      "mitre_techniques": [
+        "T1078",
+        "T1110.003",
+        "T1557",
+        "T1539",
+        "T1550",
+        "T1133"
+      ],
+      "graph_use": "Authentication edges between identity and device/application nodes. Powers blast radius analysis and user behavioral graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration",
+          "triage"
+        ],
+        "entity_analyzer_required": true,
+        "tables": [
+          "SigninLogs",
+          "AADNonInteractiveUserSignInLogs"
+        ]
+      },
+      "notebook_analytics": "Behavioral baseline ML, impossible travel statistical models, authentication pattern clustering",
+      "compliance_use": "Primary identity audit trail for SOX (access controls), HIPAA (workforce access tracking), PCI-DSS Req 10 (access logging), SOC 2 (logical access monitoring), and NIST 800-53 AC/AU families. Required evidence for access review audits, demonstrating who accessed what and when. Data lake long retention satisfies 7-year SOX and multi-year regulatory retention requirements without analytics-tier cost.",
+      "ai_agent_use": "Core source for AI agent triage workflows — agents correlate sign-in anomalies with entity risk scores, pull authentication context during incident investigation, and generate user access reports for compliance reviews. Powers conversational queries like \"show me all sign-ins for this user in the last 30 days\" and automated risk assessment during incident triage.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Entra ID Audit Logs",
+      "category": "Microsoft-Native",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Microsoft Entra ID (same connector as sign-in logs — free tier)",
+      "detection_use": "Role assignments to sensitive roles, new app registrations with dangerous permissions, conditional access policy weakening, service principal creation",
+      "forensic_use": "Privilege escalation trace, administrative action reconstruction, service principal and managed identity persistence chain",
+      "hunting_use": "Administrative activity outside known change windows, role assignments by unapproved principals, out-of-pattern app registration activity",
+      "threats_covered": [
+        "Infostealer",
+        "Cloud Identity Abuse",
+        "Leaked Credentials",
+        "Human-Op Ransomware",
+        "Access Broker",
+        "Suspicious Mailbox",
+        "Agentic Identity"
+      ],
+      "mitre_tactics": [
+        "TA0003",
+        "TA0004",
+        "TA0005"
+      ],
+      "mitre_techniques": [
+        "T1098",
+        "T1136",
+        "T1078",
+        "T1484",
+        "T1070"
+      ],
+      "graph_use": "Permission grant and role assignment edges between identity, application, and resource nodes. Powers OAuth consent graphs and privilege escalation path analysis.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "entity_analyzer_recommended": false,
+        "tables": [
+          "AuditLogs"
+        ]
+      },
+      "notebook_analytics": "Administrative activity anomaly detection, permission sprawl analysis",
+      "compliance_use": "Essential audit evidence for SOX (administrative change controls), SOC 2 CC6/CC8 (change management and logical access), NIST 800-53 AC/AU/CM families, and GDPR Article 30 (processing activity records). Proves who made administrative changes, role assignments, and permission grants. Immutable lake retention supports regulatory hold and audit evidence preservation.",
+      "ai_agent_use": "Agents query audit logs to reconstruct privilege escalation chains during investigation, surface unauthorized role assignments in triage workflows, and generate administrative change reports. Supports conversational investigation patterns like \"what admin changes were made to this tenant in the last 72 hours\" and enriches incident context with permission change history.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "MDE Device Telemetry",
+      "category": "Microsoft-Native",
+      "priority": "must-have",
+      "ingestion_pattern": "Dual-Ingest (alerts → Analytics; raw Advanced Hunting tables → Data Lake)",
+      "sentinel_connector": "Microsoft Defender XDR (native connector)",
+      "detection_use": "Malware execution, fileless attacks, lateral movement via remote services, persistence mechanism creation, LOLBin abuse",
+      "forensic_use": "Granular endpoint timeline via DeviceProcessEvents, DeviceFileEvents, DeviceNetworkEvents, DeviceRegistryEvents — complete attack chain reconstruction",
+      "hunting_use": "Unusual parent-child process relationships, suspicious command-line arguments, living-off-the-land binary abuse, network connections to unusual destinations",
+      "threats_covered": [
+        "Infostealer",
+        "Malware",
+        "Human-Op Ransomware",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0002",
+        "TA0003",
+        "TA0005",
+        "TA0007",
+        "TA0008"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1547",
+        "T1036",
+        "T1057",
+        "T1021",
+        "T1570",
+        "T1027"
+      ],
+      "graph_use": "Process-to-network-to-file edges on device nodes. Powers endpoint attack chain graphs and lateral movement path visualization.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration",
+          "triage"
+        ],
+        "entity_analyzer_recommended": true,
+        "tables": [
+          "DeviceProcessEvents",
+          "DeviceNetworkEvents",
+          "DeviceFileEvents",
+          "DeviceLogonEvents"
+        ]
+      },
+      "notebook_analytics": "Process lineage graph analysis via GraphFrames, behavioral attack chain ML, endpoint telemetry statistical analysis",
+      "compliance_use": "Supports NIST 800-53 SI (system integrity) and AU (audit and accountability) controls, PCI-DSS Req 5 (malware protection) and Req 10 (monitoring), and SOC 2 CC7 (system operations). Dual-ingest model ensures raw endpoint telemetry is retained in the data lake for forensic evidence preservation while alert-grade signals drive real-time compliance monitoring.",
+      "ai_agent_use": "Primary endpoint investigation source for AI agents — agents reconstruct process trees, correlate device events with identity signals during triage, and generate endpoint timeline reports. Powers automated alert enrichment by pulling device context, process lineage, and network connections for any entity under investigation.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Defender for Office 365 Email Logs",
+      "category": "Microsoft-Native",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Microsoft Defender XDR connector (includes EmailEvents, EmailUrlInfo, EmailAttachmentInfo)",
+      "detection_use": "Phishing delivery, malicious attachments, credential harvesting, AiTM indicators in links, ZAP remediation events",
+      "forensic_use": "Phishing campaign reconstruction — email delivery, who clicked, what payloads were accessed, full BEC timeline",
+      "hunting_use": "Attachment patterns, URL domains and redirect chains, sender reputation trends, campaigns that evaded initial detection",
+      "threats_covered": [
+        "AiTM Phishing",
+        "BEC",
+        "Phishing",
+        "Email Bombing/Vishing",
+        "Suspicious Mailbox",
+        "Agent Data Leakage"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0009"
+      ],
+      "mitre_techniques": [
+        "T1566.001",
+        "T1566.002",
+        "T1204.001",
+        "T1204.002",
+        "T1114",
+        "T1534"
+      ],
+      "graph_use": "Email delivery → URL click → compromised account edges. Powers phishing kill chain graph construction.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration",
+          "triage"
+        ],
+        "entity_analyzer_url_source": true,
+        "tables": [
+          "EmailEvents",
+          "EmailUrlInfo",
+          "EmailAttachmentInfo"
+        ]
+      },
+      "notebook_analytics": "Phishing campaign clustering, attachment pattern analysis, URL redirect chain analysis",
+      "compliance_use": "Supports HIPAA (electronic communication safeguards), PCI-DSS Req 10 (audit trail for access to cardholder data systems), SOC 2 CC6 (logical access), and NIST 800-53 SI-4 (information system monitoring). Critical evidence for BEC and phishing investigation audits. Retention in the data lake satisfies email security audit requirements across multiple regulatory frameworks.",
+      "ai_agent_use": "Agents use email logs for automated phishing triage — correlating URL clicks with sign-in anomalies, identifying affected users, and generating phishing campaign impact reports. Powers conversational investigation like \"show me all users who clicked links in this phishing campaign\" and enriches incident context with email delivery chain details.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Defender for Identity",
+      "category": "Microsoft-Native",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Microsoft Defender XDR connector (MDI alerts); Windows Security Events via AMA from domain controllers for raw AD events (IDs 4624, 4625, 4728, 4769)",
+      "detection_use": "DCSync, Kerberoasting, Pass the Hash, LDAP reconnaissance, unusual Kerberos service ticket requests — the pre-encryption ransomware chain",
+      "forensic_use": "AD attack chain from initial compromise to domain dominance — which accounts were compromised, which groups accessed, which service tickets requested",
+      "hunting_use": "Unusual Kerberos traffic patterns, service account authentication anomalies, LDAP query volume spikes indicating reconnaissance",
+      "threats_covered": [
+        "Password Spray",
+        "Human-Op Ransomware",
+        "Access Broker"
+      ],
+      "mitre_tactics": [
+        "TA0006",
+        "TA0007",
+        "TA0008"
+      ],
+      "mitre_techniques": [
+        "T1003",
+        "T1558",
+        "T1087",
+        "T1069",
+        "T1110"
+      ],
+      "graph_use": "AD authentication edges between identity and resource nodes. Powers lateral movement path analysis and Kerberoasting chain graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration",
+          "triage"
+        ],
+        "entity_analyzer_recommended": true,
+        "tables": [
+          "IdentityLogonEvents",
+          "IdentityQueryEvents",
+          "IdentityDirectoryEvents"
+        ]
+      },
+      "notebook_analytics": "Kerberos ticket pattern analysis, AD graph traversal via GraphFrames, lateral movement path algorithms",
+      "compliance_use": "Key evidence for SOX (privileged access controls), PCI-DSS Req 8 (authentication management), NIST 800-53 AC/IA families (identification and authentication), and SOC 2 CC6 (logical access). AD security monitoring proves control effectiveness over privileged authentication. Supports compliance audits for Kerberos-based authentication and service account governance.",
+      "ai_agent_use": "Agents leverage identity signals for lateral movement investigation — correlating Kerberos anomalies with device and sign-in data during triage. Supports automated detection of privilege escalation paths and generates AD security posture reports. Powers queries like \"show me all Kerberoasting attempts targeting service accounts this week.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Defender for Cloud Apps",
+      "category": "Microsoft-Native",
+      "priority": "should-have",
+      "ingestion_pattern": "Analytics Tier (alert-level); Data Lake (full cloud app activity volume)",
+      "sentinel_connector": "Microsoft Defender for Cloud Apps (native connector)",
+      "detection_use": "Cloud app access anomalies, OAuth consent abuse, mass file downloads, impossible travel in cloud apps",
+      "forensic_use": "Data exfiltration timeline — what was accessed, when, and where it went across sanctioned and unsanctioned cloud apps",
+      "hunting_use": "Shadow IT discovery, unusual file sharing patterns, out-of-hours access to sensitive repositories, application usage baseline deviations",
+      "threats_covered": [
+        "Cloud Identity Abuse",
+        "Data Exfiltration",
+        "Access Broker",
+        "Suspicious Mailbox",
+        "Insider Threats",
+        "Agent Data Leakage"
+      ],
+      "mitre_tactics": [
+        "TA0005",
+        "TA0007",
+        "TA0009",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1528",
+        "T1567",
+        "T1114",
+        "T1213",
+        "T1071"
+      ],
+      "graph_use": "App access edges between identity and cloud resource nodes. Powers shadow IT and data access pattern graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "entity_analyzer_required": true,
+        "tables": [
+          "CloudAppEvents"
+        ]
+      },
+      "notebook_analytics": "Cloud app usage anomaly detection, OAuth permission chain analysis",
+      "compliance_use": "Supports GDPR (data transfer and third-party processing monitoring), SOC 2 CC6/CC9 (vendor management and data protection), NIST 800-53 AC-20 (external information systems), and PCI-DSS Req 12 (third-party service provider management). Shadow IT discovery evidence for vendor risk assessments. Data lake retention preserves cloud app access history for regulatory inquiries.",
+      "ai_agent_use": "Agents query cloud app events for data exfiltration investigation — correlating unusual file sharing with identity anomalies and generating shadow IT exposure reports. Powers conversational queries like \"what cloud apps did this user access during the incident window\" and enriches triage context with OAuth consent and app activity data.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Azure Activity Logs",
+      "category": "Microsoft-Native",
+      "priority": "should-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Azure Activity (built-in connector — billable on ingestion)",
+      "detection_use": "Unauthorized resource deployment, role elevation in Azure subscriptions, security configuration changes, storage account permission modifications",
+      "forensic_use": "Cloud pivot reconstruction — what the attacker touched, deployed, or modified in Azure subscriptions after initial access",
+      "hunting_use": "Infrastructure change patterns outside change windows, unusual deployment activity, resource access from unexpected service principals",
+      "threats_covered": [
+        "Cloud Identity Abuse",
+        "Data Exfiltration",
+        "Cloud/Container Compromise",
+        "Vuln Exploitation",
+        "Access Broker",
+        "Agentic Identity"
+      ],
+      "mitre_tactics": [
+        "TA0003",
+        "TA0004",
+        "TA0005"
+      ],
+      "mitre_techniques": [
+        "T1098",
+        "T1078",
+        "T1190",
+        "T1525",
+        "T1562"
+      ],
+      "graph_use": "Cloud resource modification edges between identity and Azure resource nodes. Powers cloud pivot and infrastructure change graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "AzureActivity"
+        ]
+      },
+      "notebook_analytics": null,
+      "compliance_use": "Primary cloud infrastructure audit trail for SOX (change management controls), SOC 2 CC8 (change management), NIST 800-53 CM/AU families, and PCI-DSS Req 10 (audit trails for system components). Proves who modified cloud resources, when, and what changed. Essential evidence for cloud security posture audits and infrastructure change reviews.",
+      "ai_agent_use": "Agents use activity logs to investigate cloud infrastructure changes during incidents — identifying resource modifications, role assignments, and configuration drift. Supports automated compliance reporting and powers queries like \"what Azure resources were modified by this service principal in the last 48 hours.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Azure Firewall and NSG Flow Logs",
+      "category": "Microsoft-Native",
+      "priority": "should-have",
+      "ingestion_pattern": "Data Lake",
+      "sentinel_connector": "Azure Firewall connector; NSG flow logs via Diagnostic Settings to Log Analytics",
+      "detection_use": "Lateral movement patterns, C2 communication to known-bad infrastructure, unusual outbound data volumes",
+      "forensic_use": "Network path reconstruction — how traffic flowed during an incident, blocked and allowed paths",
+      "hunting_use": "Traffic baseline deviation, unusual port usage, external destination anomalies, long-duration low-volume exfiltration patterns",
+      "threats_covered": [
+        "Human-Op Ransomware",
+        "Data Exfiltration",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0008",
+        "TA0010",
+        "TA0011"
+      ],
+      "mitre_techniques": [
+        "T1021",
+        "T1071",
+        "T1090",
+        "T1041",
+        "T1020"
+      ],
+      "graph_use": "Network connection edges between IP/device pairs. Powers lateral movement visualization and traffic flow graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "AzureNetworkAnalytics_CL",
+          "AZFWNetworkRule"
+        ]
+      },
+      "notebook_analytics": "Traffic flow graph analysis via GraphFrames, volumetric anomaly detection, long-duration exfiltration pattern detection",
+      "compliance_use": "Supports PCI-DSS Req 1 (firewall and network segmentation), NIST 800-53 SC (system and communications protection) and AU families, and SOC 2 CC6 (network security). Network flow data provides evidence of segmentation effectiveness and traffic control compliance. Data lake retention enables long-term network forensics for regulatory investigations.",
+      "ai_agent_use": "Agents query flow logs for network-layer investigation — tracing lateral movement paths, identifying data exfiltration channels, and correlating network connections with endpoint and identity signals during triage. Supports queries like \"show me all outbound connections from this device during the incident window.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Endpoint Process Events (Sysmon / Event ID 4688)",
+      "category": "Microsoft-Native",
+      "priority": "should-have",
+      "ingestion_pattern": "Data Lake",
+      "sentinel_connector": "Windows Security Events via AMA with custom XPath queries (Sysmon Event IDs 1, 3, 7, 11)",
+      "detection_use": "Process creation with command-line arguments catching execution not triggering EDR alerts; useful for non-MDE endpoints",
+      "forensic_use": "Complete process trees via Sysmon GUID correlation across reboots — process genealogy for deep incident reconstruction",
+      "hunting_use": "Legitimate tools with suspicious arguments, LOLBIN abuse patterns, command-line fingerprinting across fleet",
+      "threats_covered": [
+        "Infostealer",
+        "Malware",
+        "Human-Op Ransomware"
+      ],
+      "mitre_tactics": [
+        "TA0002",
+        "TA0003",
+        "TA0005"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1547",
+        "T1218",
+        "T1027",
+        "T1036"
+      ],
+      "graph_use": "Process lineage edges (parent-child-grandchild). Powers endpoint execution chain graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "SecurityEvent",
+          "Sysmon"
+        ]
+      },
+      "notebook_analytics": "Process tree graph construction, LOLBin usage pattern clustering, command-line argument statistical analysis",
+      "compliance_use": "Supports NIST 800-53 AU-2/AU-12 (auditable events and audit generation), PCI-DSS Req 10 (audit trail), and SOC 2 CC7 (system operations monitoring). Process-level execution logs provide defense-in-depth evidence for endpoints not covered by primary EDR. Data lake retention preserves execution history for post-breach regulatory reporting.",
+      "ai_agent_use": "Agents use process events to reconstruct execution chains on non-MDE endpoints during investigation, correlate process lineage with threat intelligence, and generate LOLBin usage reports. Supports deep-dive forensic queries across the full fleet where MDE coverage gaps exist.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Microsoft Purview Information Protection",
+      "category": "Microsoft-Native",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Microsoft Purview Information Protection (native connector; XPIADetected and JailbreakDetected event types — GA)",
+      "detection_use": "Cross-prompt injection attacks against M365 Copilot and Copilot Studio agents (XPIADetected), jailbreak attempts against AI agents (JailbreakDetected)",
+      "forensic_use": "AI agent interaction audit trail — full session context for T11 incident reconstruction including prompt content and agent response chain",
+      "hunting_use": "Anomalous agent invocation patterns, prompt content clustering, unusual tool execution sequences through AI agents",
+      "threats_covered": [
+        "AI System Attacks",
+        "Agent Runtime Exploit",
+        "Agent Data Leakage",
+        "Agentic Identity"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0002",
+        "TA0005",
+        "TA0009",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1190",
+        "T1562",
+        "T1114",
+        "T1213",
+        "T1567"
+      ],
+      "graph_use": "Data access and AI interaction edges between identity and information asset nodes. Powers data risk graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "PurviewInformationProtection"
+        ]
+      },
+      "notebook_analytics": "AI interaction pattern clustering, prompt content analysis, data access anomaly detection",
+      "compliance_use": "Primary data governance audit trail for GDPR (Article 30 processing records and Article 35 DPIA evidence), HIPAA (PHI access tracking), SOX (sensitive data access controls), PCI-DSS Req 3 (cardholder data protection), and NIST 800-53 MP/SC families. Proves data classification, labeling, and protection policy enforcement. Critical evidence for data breach notification compliance and AI safety governance.",
+      "ai_agent_use": "Agents query Purview data for AI-specific security triage — correlating prompt injection alerts with data access patterns, investigating cross-prompt injection chains, and generating AI safety incident reports. Powers conversational investigation of AI agent interactions and supports automated assessment of data exposure risk from AI-mediated access.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "DNS Logs",
+      "category": "Network",
+      "priority": "must-have",
+      "ingestion_pattern": "Dual-Ingest (high-signal alerts → Analytics via DnsEvents; full query stream → Data Lake)",
+      "sentinel_connector": "Windows DNS via AMA; Infoblox via CEF AMA; Palo Alto DNS Security via CEF AMA; Cisco Umbrella via REST API",
+      "detection_use": "DGA domain detection, DNS tunneling for C2 and exfiltration, fast-flux lookups, newly registered domain queries, DNS-over-HTTPS evasion",
+      "forensic_use": "Attacker infrastructure mapping — complete domain resolution history for compromised hosts across the full incident timeline",
+      "hunting_use": "Entropy-based DGA hunting, beaconing interval analysis, passive DNS correlation with threat intel feeds, long-tail domain querying patterns",
+      "threats_covered": [
+        "Malware",
+        "Human-Op Ransomware",
+        "Data Exfiltration",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0011",
+        "TA0010",
+        "TA0007"
+      ],
+      "mitre_techniques": [
+        "T1568",
+        "T1071.004",
+        "T1001",
+        "T1132",
+        "T1046"
+      ],
+      "graph_use": "DNS query edges between device and domain nodes. Powers C2 beacon hunting graphs and DNS infrastructure correlation.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "DnsEvents"
+        ]
+      },
+      "notebook_analytics": "Beaconing interval statistical analysis, DGA entropy analysis, DNS query graph periodicity detection via GraphFrames",
+      "compliance_use": "Supports NIST 800-53 SI-4 (network monitoring) and AU families, PCI-DSS Req 10 (audit trails), and SOC 2 CC7 (system operations). DNS resolution history provides forensic evidence for C2 infrastructure identification and data exfiltration channel detection. Dual-ingest retention ensures long-term DNS query history for regulatory investigations.",
+      "ai_agent_use": "Agents use DNS logs for C2 infrastructure investigation — correlating suspicious domain queries with endpoint and network signals, performing automated DGA detection, and enriching incident context with domain resolution history. Powers queries like \"show me all DNS queries to newly registered domains from this device.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Proxy and URL Filtering Logs",
+      "category": "Network",
+      "priority": "must-have",
+      "ingestion_pattern": "Dual-Ingest (policy violations and threat category matches → Analytics; full request stream → Data Lake)",
+      "sentinel_connector": "Zscaler ZIA via CEF AMA; Palo Alto Prisma Access via CEF AMA; Squid Proxy via Syslog AMA; W3C IIS Proxy Logs via AMA",
+      "detection_use": "Phishing URL access, drive-by download, C2 HTTP/HTTPS callbacks, credential form submission to external sites, malware distribution network access",
+      "forensic_use": "Full browsing timeline — initial phishing click through malware download, C2 establishment, and data staging for compromised users",
+      "hunting_use": "Domain category anomalies, user-agent string deviations, upload-to-download ratio outliers, long-dwell low-volume exfiltration patterns",
+      "threats_covered": [
+        "AiTM Phishing",
+        "Phishing",
+        "Data Exfiltration",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0010",
+        "TA0011"
+      ],
+      "mitre_techniques": [
+        "T1071",
+        "T1105",
+        "T1567",
+        "T1189",
+        "T1566.002"
+      ],
+      "graph_use": "Web request edges between device and URL/domain nodes. Supports C2 path analysis and data exfiltration graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CommonSecurityLog"
+        ]
+      },
+      "notebook_analytics": "URL pattern clustering, web traffic volumetric analysis, beacon detection",
+      "compliance_use": "Supports PCI-DSS Req 1 (web filtering and access controls), NIST 800-53 SC-7 (boundary protection) and AU families, SOC 2 CC6 (logical access), and HIPAA (electronic safeguards for web-based access). Web access logs provide evidence of acceptable use policy enforcement and outbound data transfer controls. Data lake retention preserves browsing history for insider threat and data loss investigations.",
+      "ai_agent_use": "Agents query proxy logs for web-based attack investigation — tracing phishing click chains, correlating URL access with credential compromise timelines, and generating web activity reports for affected users. Supports automated beacon detection and powers queries like \"show me all web requests to this domain across the fleet.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Firewall / IPS / IDS Alerts",
+      "category": "Network",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Palo Alto Networks via CEF AMA; Cisco Firepower via CEF AMA; Fortinet FortiGate via CEF AMA; Check Point via CEF AMA; Azure Firewall threat intelligence alerts via Diagnostic Settings",
+      "detection_use": "Alert-grade signals only: exploit attempts against network-exposed services, port scanning and reconnaissance, known malware C2 traffic blocks, IPS rule hits. Not the raw session feed — see Firewall Raw Session Traffic Logs for the full volume stream.",
+      "forensic_use": "Network attack chain reconstruction — attacker reconnaissance sequence, exploitation attempts, blocked lateral movement paths, callback attempts identified by IPS signatures",
+      "hunting_use": "Repeated block patterns indicating persistence, allowed traffic that bypassed IPS signatures, slow multi-day reconnaissance patterns — complement with raw session logs for sessions the IPS permitted",
+      "threats_covered": [
+        "Human-Op Ransomware",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0011",
+        "TA0043"
+      ],
+      "mitre_techniques": [
+        "T1190",
+        "T1071",
+        "T1090",
+        "T1595"
+      ],
+      "graph_use": null,
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CommonSecurityLog"
+        ]
+      },
+      "notebook_analytics": null,
+      "compliance_use": "Supports PCI-DSS Req 11 (IDS/IPS deployment and monitoring), NIST 800-53 SI-4 (intrusion detection), and SOC 2 CC7 (system operations and threat detection). Alert-grade network security events provide compliance evidence for perimeter defense effectiveness and intrusion attempt documentation.",
+      "ai_agent_use": "Agents use firewall and IPS alerts for automated triage — correlating network threat signals with endpoint and identity events, scoring alert severity based on contextual enrichment, and generating perimeter threat summary reports. Supports rapid alert disposition in agentic SOC workflows.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Firewall Raw Session and Traffic Logs (North-South)",
+      "category": "Network",
+      "priority": "should-have",
+      "ingestion_pattern": "Dual-Ingest (threat intelligence hits and block summaries → Analytics; full session traffic stream → Data Lake)",
+      "sentinel_connector": "Palo Alto Networks traffic logs via CEF AMA; Fortinet FortiGate traffic logs via CEF AMA; Cisco ASA/FTD traffic logs via CEF AMA; Check Point SmartLog via CEF AMA; Azure Firewall flow logs via Diagnostic Settings",
+      "detection_use": "Not suited for real-time analytics rules at full volume — too expensive at enterprise scale. Analytics tier receives only pre-filtered threat intelligence hits and block event summaries. Data volume from a single enterprise perimeter firewall can exceed hundreds of gigabytes per day.",
+      "forensic_use": "Complete perimeter session reconstruction — every connection allowed or denied at the north-south boundary. Enables precise timeline of attacker egress paths, exfiltration channels, and C2 callback sequences that IPS missed or permitted.",
+      "hunting_use": "Long-duration allowed sessions indicating C2 beaconing or slow data staging, geo/ASN-based connection outliers, port and protocol abuse at the perimeter, high-bandwidth single-session outliers, connections to newly registered or categorized-unknown destinations",
+      "threats_covered": [
+        "Human-Op Ransomware",
+        "Data Exfiltration",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0010",
+        "TA0011",
+        "TA0008"
+      ],
+      "mitre_techniques": [
+        "T1041",
+        "T1071",
+        "T1090",
+        "T1020",
+        "T1573"
+      ],
+      "graph_use": "Network session edges between IP pairs. Powers traffic flow graphs and lateral movement path analysis.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CommonSecurityLog"
+        ]
+      },
+      "notebook_analytics": "Session duration analysis, traffic flow graph construction, volumetric exfiltration detection",
+      "compliance_use": "Supports PCI-DSS Req 1 (firewall configuration and traffic monitoring), NIST 800-53 SC/AU families (network protection and audit), and SOC 2 CC6 (network security). Full perimeter session logs provide comprehensive network activity evidence for compliance audits. Data lake retention is essential — analytics-tier ingestion at full volume is cost-prohibitive, making the data lake the compliance-grade retention layer.",
+      "ai_agent_use": "Agents query raw session logs for deep network forensics — tracing complete perimeter traffic flows during incidents, identifying exfiltration channels missed by IPS, and generating session-level network timeline reports. Supports investigation queries against the data lake for historical perimeter activity reconstruction.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "East-West Firewall and Micro-Segmentation Logs",
+      "category": "Network",
+      "priority": "should-have",
+      "ingestion_pattern": "Dual-Ingest (policy violation alerts and cross-zone anomalies → Analytics; full internal traffic flow stream → Data Lake)",
+      "sentinel_connector": "Palo Alto Networks internal zone firewall logs via CEF AMA; Fortinet FortiGate inter-VLAN traffic logs via CEF AMA; Cisco Secure Firewall east-west rules via CEF AMA; VMware NSX distributed firewall via Syslog AMA; Azure NSG flow logs between subnets via Diagnostic Settings; Azure Firewall internal rules via Diagnostic Settings",
+      "detection_use": "Anomalous lateral movement across network segments — access attempts from low-trust to high-trust zones, workstation-initiated connections to servers on unusual ports, service account systems initiating unexpected outbound connections across segment boundaries",
+      "forensic_use": "Internal blast radius reconstruction — trace every segment and host an attacker traversed after initial access. Validate containment boundary integrity and identify micro-segmentation policy bypasses used during lateral movement.",
+      "hunting_use": "Peer-group deviation for server-to-server communication patterns, unusual inter-segment protocol usage (SMB, RDP, WMI out of baseline), scanning traffic originating from newly compromised hosts, inter-segment data transfer volume anomalies outside maintenance windows",
+      "threats_covered": [
+        "Human-Op Ransomware",
+        "Vuln Exploitation",
+        "Access Broker",
+        "Nation-State Espionage",
+        "Insider Threats"
+      ],
+      "mitre_tactics": [
+        "TA0008",
+        "TA0007"
+      ],
+      "mitre_techniques": [
+        "T1021",
+        "T1210",
+        "T1570",
+        "T1046",
+        "T1135"
+      ],
+      "graph_use": "Internal network connection edges between device nodes. Critical for lateral movement blast radius graphs — highest-value graph source for flat networks.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CommonSecurityLog"
+        ]
+      },
+      "notebook_analytics": "Internal traffic flow graph analysis via GraphFrames, lateral movement path algorithms, micro-segmentation effectiveness analysis",
+      "compliance_use": "Supports PCI-DSS Req 1 (network segmentation validation), NIST 800-53 SC-7 (boundary protection) and AC-4 (information flow enforcement), and SOC 2 CC6 (network security). Internal traffic logs provide segmentation effectiveness evidence — critical for PCI scoping audits and zero-trust architecture validation.",
+      "ai_agent_use": "Agents query east-west logs for lateral movement investigation — tracing internal traffic flows between compromised hosts, validating micro-segmentation containment effectiveness, and generating blast radius reports. Powers queries like \"show me all cross-segment connections from this compromised host during the incident window.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Web Application Firewall Logs",
+      "category": "Network",
+      "priority": "should-have",
+      "ingestion_pattern": "Dual-Ingest (Blocked and Detected events → Analytics; full WAF request log stream → Data Lake)",
+      "sentinel_connector": "Azure Application Gateway WAF via Diagnostic Settings; Azure Front Door WAF via Diagnostic Settings; F5 BIG-IP, Imperva, Cloudflare via CEF AMA",
+      "detection_use": "SQL injection, cross-site scripting, path traversal, web shell upload, application-layer DDoS, API endpoint abuse",
+      "forensic_use": "Complete HTTP session history for web-based initial access — request parameters, payload content, response codes, session continuity",
+      "hunting_use": "Scanner tool fingerprinting via request patterns, payload signature clustering, slow application brute force across multi-day windows",
+      "threats_covered": [
+        "Cloud/Container Compromise",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0002"
+      ],
+      "mitre_techniques": [
+        "T1190",
+        "T1059",
+        "T1505.003"
+      ],
+      "graph_use": null,
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "AzureDiagnostics"
+        ]
+      },
+      "notebook_analytics": null,
+      "compliance_use": "Supports PCI-DSS Req 6 (web application security), NIST 800-53 SI-3/SI-4 (malicious code protection and monitoring), and SOC 2 CC7 (threat detection). WAF logs provide evidence of application-layer attack prevention and web application security control effectiveness for compliance audits.",
+      "ai_agent_use": "Agents use WAF logs for web attack investigation — correlating application-layer attack patterns with infrastructure signals, triaging SQL injection and XSS attempts, and generating web application threat reports. Supports automated severity assessment of web-based exploitation attempts.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Network Detection and Response (NDR)",
+      "category": "Network",
+      "priority": "should-have",
+      "ingestion_pattern": "Dual-Ingest (high-confidence detections → Analytics; raw network flow and metadata → Data Lake)",
+      "sentinel_connector": "Corelight via CEF AMA or native connector; Vectra AI via CEF AMA; Darktrace via CEF AMA; ExtraHop Reveal(x) via CEF AMA",
+      "detection_use": "Anomalous lateral movement patterns, C2 beaconing to external infrastructure, unusual data staging and transfer, insider threat behavioral signals",
+      "forensic_use": "Full east-west traffic reconstruction — which hosts communicated with the compromised endpoint and when, for incident scope determination",
+      "hunting_use": "Protocol anomaly hunting, encrypted traffic behavioral analysis, peer-group deviation detection, unusual internal port usage patterns",
+      "threats_covered": [
+        "Human-Op Ransomware",
+        "Data Exfiltration",
+        "Access Broker",
+        "Nation-State Espionage",
+        "Insider Threats"
+      ],
+      "mitre_tactics": [
+        "TA0008",
+        "TA0010",
+        "TA0011"
+      ],
+      "mitre_techniques": [
+        "T1071",
+        "T1090",
+        "T1041",
+        "T1021",
+        "T1570"
+      ],
+      "graph_use": "Network behavior edges between device/IP nodes. Powers lateral movement and C2 communication graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CommonSecurityLog"
+        ]
+      },
+      "notebook_analytics": "Network traffic graph analysis, protocol anomaly detection, lateral movement path ML",
+      "compliance_use": "Operational forensics support; not a primary compliance evidence source. NDR behavioral analytics complement compliance-grade sources by providing network-level anomaly context for incident investigations required under breach notification regulations (GDPR Article 33, HIPAA breach rule).",
+      "ai_agent_use": "Agents leverage NDR signals for behavioral network investigation — correlating anomalous lateral movement with endpoint and identity data, enriching triage with protocol-level anomaly context, and supporting automated C2 detection workflows. Provides network behavioral context that enhances agent investigation depth.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "VPN Logs",
+      "category": "Identity & Access",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Cisco ASA via CEF AMA; Palo Alto GlobalProtect via CEF AMA; Citrix NetScaler Gateway via CEF AMA; Zscaler ZPA via CEF AMA; Fortinet FortiGate SSL VPN via CEF AMA",
+      "detection_use": "Impossible travel via VPN infrastructure, credential stuffing against VPN endpoints, split-tunnel exploitation, unauthorized VPN client access from untrusted devices",
+      "forensic_use": "Remote access timeline for the compromised credential — full session history including establishment, internal resources accessed, client IP and geolocation",
+      "hunting_use": "Off-hours VPN access patterns, unusual client network provider patterns, concurrent session anomalies, geographic outlier connections",
+      "threats_covered": [
+        "Infostealer",
+        "Password Spray",
+        "Human-Op Ransomware",
+        "Vuln Exploitation",
+        "Access Broker"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0006"
+      ],
+      "mitre_techniques": [
+        "T1133",
+        "T1078",
+        "T1110",
+        "T1550"
+      ],
+      "graph_use": "Remote access edges between external identity and internal network entry points. Powers access scope analysis.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CommonSecurityLog"
+        ]
+      },
+      "notebook_analytics": "VPN usage pattern analysis, geographic access anomaly detection",
+      "compliance_use": "Supports PCI-DSS Req 8 (remote access authentication), NIST 800-53 AC-17 (remote access controls) and IA families, SOC 2 CC6 (logical access), and HIPAA (remote workforce access safeguards). VPN logs prove remote access control effectiveness and authorized remote session documentation. Required evidence for remote access audits.",
+      "ai_agent_use": "Agents use VPN logs for remote access investigation — correlating VPN sessions with sign-in anomalies, detecting impossible travel via VPN infrastructure, and generating remote access timeline reports for compromised credentials. Powers queries like \"show me all VPN sessions for this user in the last 7 days.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Privileged Access Management Logs",
+      "category": "Identity & Access",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "CyberArk PAS via native Sentinel connector or CEF AMA; BeyondTrust Password Safe via CEF AMA; Delinea Secret Server via CEF and Syslog AMA",
+      "detection_use": "Unauthorized privileged credential checkout, PAM vault bypass attempts, privileged access outside change windows, session recording termination anomalies",
+      "forensic_use": "Privileged access chain — which stored credentials were used, on which target systems, during what time window, and by which operator identity",
+      "hunting_use": "After-hours privileged access patterns, credential checkout volume spikes, sequential multi-system access by single operator, vault access from unusual workstations",
+      "threats_covered": [
+        "Access Broker Activity",
+        "Insider Threats"
+      ],
+      "mitre_tactics": [
+        "TA0004",
+        "TA0006"
+      ],
+      "mitre_techniques": [
+        "T1078",
+        "T1003",
+        "T1555",
+        "T1068"
+      ],
+      "graph_use": "Privileged access edges between identity and target resource nodes. Powers privilege graph construction.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CommonSecurityLog"
+        ]
+      },
+      "notebook_analytics": "Privileged access pattern analysis, just-in-time elevation timing analysis",
+      "compliance_use": "Primary privileged access audit trail for SOX (privileged access controls), PCI-DSS Req 8 (privileged credential management), NIST 800-53 AC-2/AC-6 (account management and least privilege), SOC 2 CC6 (logical access), and HIPAA (administrative access controls). Proves privileged credential checkout authorization, session recording, and just-in-time access enforcement. Critical evidence for privileged access reviews.",
+      "ai_agent_use": "Agents query PAM logs during privilege escalation investigation — correlating credential checkout events with target system activity, detecting unauthorized privileged access patterns, and generating privileged session audit reports. Supports automated just-in-time access compliance verification and powers privileged access anomaly detection.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Windows Server Security Events",
+      "category": "Endpoint",
+      "priority": "must-have",
+      "ingestion_pattern": "Dual-Ingest (scoped event IDs 4624, 4625, 4728, 4729, 4740, 4769, 4772, 4776, 7045 → Analytics; full event stream → Data Lake)",
+      "sentinel_connector": "Windows Security Events via AMA (scoped event ID XPath queries)",
+      "detection_use": "Pass-the-Hash, Kerberoasting, local administrator group abuse, unauthorized service installation, account lockout pattern attacks",
+      "forensic_use": "Windows authentication chain reconstruction — credential use from initial compromise through privilege escalation and lateral movement",
+      "hunting_use": "Logon type distribution anomalies, service account authentication from non-standard hosts, suspicious scheduled task creation, LSASS access events",
+      "threats_covered": [
+        "Infostealer",
+        "Password Spray",
+        "Human-Op Ransomware",
+        "Vuln Exploitation",
+        "Access Broker",
+        "Nation-State Espionage",
+        "Insider Threats"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0004",
+        "TA0006",
+        "TA0008"
+      ],
+      "mitre_techniques": [
+        "T1003",
+        "T1558",
+        "T1078",
+        "T1543",
+        "T1053",
+        "T1021"
+      ],
+      "graph_use": "File access and collaboration edges between identity and document/site nodes. Powers data access graphs and collaboration pattern analysis.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "OfficeActivity"
+        ]
+      },
+      "notebook_analytics": "File access pattern clustering, collaboration anomaly detection, bulk download analysis",
+      "compliance_use": "Core Windows audit trail for SOX (server access controls), PCI-DSS Req 10 (audit trails for system components), NIST 800-53 AU/AC families, SOC 2 CC6/CC7 (logical access and system operations), and HIPAA (system access monitoring). Scoped event IDs provide evidence of authentication, privilege escalation, and service installation controls. Dual-ingest retention preserves full event history for regulatory investigations.",
+      "ai_agent_use": "Agents use Windows security events for server-side investigation — correlating authentication events with lateral movement indicators, reconstructing credential usage chains, and generating Windows authentication timeline reports. Powers queries like \"show me all logon events for this service account across domain controllers.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Linux Server AuditD Logs",
+      "category": "Endpoint",
+      "priority": "should-have",
+      "ingestion_pattern": "Dual-Ingest (privilege escalation alerts, sudo abuse, SUID execution → Analytics; full AuditD stream → Data Lake)",
+      "sentinel_connector": "Syslog via AMA collecting AuditD rules for execve, openat, connect, socket, setuid, chmod, and cron modification syscalls",
+      "detection_use": "Privilege escalation via SUID/GUID binaries, unauthorized sudo usage, malicious cron job installation, reverse shell execution, rootkit installation attempts",
+      "forensic_use": "Linux attack chain reconstruction — process execution lineage, file access timeline, network connection sequence",
+      "hunting_use": "Unusual execve argument patterns, command-line fingerprinting across fleet, file access to credential stores (/etc/passwd, /etc/shadow, SSH key directories)",
+      "threats_covered": [
+        "Human-Op Ransomware",
+        "Cloud/Container Compromise",
+        "Vuln Exploitation",
+        "Insider Threats"
+      ],
+      "mitre_tactics": [
+        "TA0002",
+        "TA0003",
+        "TA0004"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1053",
+        "T1548",
+        "T1068",
+        "T1543"
+      ],
+      "graph_use": null,
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "Syslog"
+        ]
+      },
+      "notebook_analytics": "SUID/sudo abuse pattern analysis, syscall sequence anomaly detection",
+      "compliance_use": "Supports PCI-DSS Req 10 (audit trails for Linux systems), NIST 800-53 AU/AC families, SOC 2 CC6/CC7 (system access and operations monitoring), and CIS benchmark compliance evidence. AuditD logs provide Linux-equivalent audit coverage for privilege escalation, process execution, and file access. Data lake retention preserves syscall-level evidence for forensic and regulatory needs.",
+      "ai_agent_use": "Agents query AuditD logs for Linux server investigation — reconstructing privilege escalation chains, correlating syscall sequences with known attack patterns, and generating Linux security event reports. Supports automated hunting for SUID abuse and unauthorized cron modifications across the Linux fleet.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Third-Party EDR Alerts",
+      "category": "Endpoint",
+      "priority": "should-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "CrowdStrike Falcon via native Sentinel connector; SentinelOne via native connector or CEF AMA; VMware Carbon Black via CEF AMA; Trend Micro Vision One via CEF AMA",
+      "detection_use": "Process injection, fileless malware execution, ransomware pre-stage behaviors, credential dumping, living-off-the-land tool abuse, encoded command execution",
+      "forensic_use": "Endpoint attack timeline from initial code execution through persistence, privilege escalation, and lateral movement preparation",
+      "hunting_use": "Process lineage anomalies, unusual parent-child execution relationships, LOLBin execution patterns, encoded PowerShell script clusters across the fleet",
+      "threats_covered": [
+        "Infostealer",
+        "Malware",
+        "Human-Op Ransomware",
+        "Cloud/Container Compromise",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0002",
+        "TA0003",
+        "TA0005",
+        "TA0006"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1547",
+        "T1003",
+        "T1027",
+        "T1036",
+        "T1218"
+      ],
+      "graph_use": null,
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration",
+          "triage"
+        ],
+        "tables": [
+          "SecurityAlert"
+        ]
+      },
+      "notebook_analytics": null,
+      "compliance_use": "Supports NIST 800-53 SI-3/SI-4 (malicious code detection and monitoring), PCI-DSS Req 5 (malware protection), and SOC 2 CC7 (threat detection). Cross-vendor EDR alerts provide evidence of endpoint protection coverage and threat detection effectiveness across heterogeneous endpoint environments. Alert retention supports incident documentation for regulatory reporting.",
+      "ai_agent_use": "Agents use third-party EDR alerts for cross-vendor endpoint triage — correlating alerts from CrowdStrike, SentinelOne, or Carbon Black with Microsoft-native signals, normalizing severity across vendors, and generating unified endpoint threat reports. Supports agentic workflows that span multi-vendor endpoint environments.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Third-Party EDR Raw Telemetry",
+      "category": "Endpoint",
+      "priority": "should-have",
+      "ingestion_pattern": "Data Lake",
+      "sentinel_connector": "CrowdStrike Falcon Data Replicator via Azure Event Hub to Data Lake; SentinelOne Deep Visibility via REST API to custom DCR; custom DCR tables: EDR_Process_CL, EDR_Network_CL, EDR_File_CL",
+      "detection_use": "Not a real-time detection source — provides raw telemetry for threat hunting and retroactive IOC matching against stored process, network, and file telemetry",
+      "forensic_use": "Deep endpoint forensics — full process execution lineage, file system change history, network connection timeline across the retention window",
+      "hunting_use": "Process injection pattern hunting, DLL sideloading identification, fileless script execution reconstruction, lateral tool transfer analysis, persistence mechanism enumeration",
+      "threats_covered": [
+        "Infostealer",
+        "Malware",
+        "Human-Op Ransomware",
+        "Cloud/Container Compromise",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0002",
+        "TA0005",
+        "TA0007",
+        "TA0008"
+      ],
+      "mitre_techniques": [
+        "T1055",
+        "T1574",
+        "T1059",
+        "T1036",
+        "T1570"
+      ],
+      "graph_use": "Endpoint behavior edges from process, network, and file telemetry. Enables cross-vendor endpoint graph analysis.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "EDR_Process_CL",
+          "EDR_Network_CL",
+          "EDR_File_CL"
+        ]
+      },
+      "notebook_analytics": "Cross-vendor endpoint telemetry correlation, process injection pattern ML, DLL sideloading graph analysis",
+      "compliance_use": "Operational forensics support; not a primary compliance evidence source. Raw EDR telemetry in the data lake provides deep forensic evidence for post-breach investigations required under breach notification regulations but is not typically referenced in routine compliance audits.",
+      "ai_agent_use": "Agents query raw EDR telemetry for deep forensic investigation — reconstructing process injection chains, correlating cross-vendor endpoint activity with network and identity signals, and generating detailed endpoint forensic reports. Data lake access enables historical retroactive IOC matching across the full retention window.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Cloud Storage Access Logs",
+      "category": "Cloud & Infrastructure",
+      "priority": "should-have",
+      "ingestion_pattern": "Dual-Ingest (anomaly access alerts → Analytics; full object-level access stream → Data Lake)",
+      "sentinel_connector": "AWS S3 data events via AWS CloudTrail connector; Azure Blob Storage via Diagnostic Settings; GCS Cloud Audit Logs via GCP connector or custom REST API",
+      "detection_use": "Bulk data exfiltration via cloud object storage, public bucket misconfiguration exploitation, cross-account data theft, storage encryption ransomware staging",
+      "forensic_use": "Data theft scope dossier — exact objects accessed, volume downloaded, timestamps, and requestor identity for cloud storage exfiltration incidents",
+      "hunting_use": "Off-hours storage access patterns, service account accessing buckets outside operational baseline, large single-session download outliers",
+      "threats_covered": [
+        "Data Exfiltration",
+        "Cloud/Container Compromise",
+        "Access Broker",
+        "Insider Threats"
+      ],
+      "mitre_tactics": [
+        "TA0009",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1530",
+        "T1567",
+        "T1537",
+        "T1005"
+      ],
+      "graph_use": "Data access edges between identity and storage resource nodes. Powers data exfiltration path and cloud storage access graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "StorageBlobLogs"
+        ]
+      },
+      "notebook_analytics": "Bulk download detection, access pattern clustering, cross-account data flow analysis",
+      "compliance_use": "Supports GDPR (data transfer and storage monitoring), PCI-DSS Req 3/10 (cardholder data storage and audit trails), NIST 800-53 AC-3/AU families (access enforcement and audit), SOC 2 CC6 (data protection), and HIPAA (electronic PHI storage safeguards). Object-level access logs prove data access controls and provide evidence for data breach scope determination. Critical for data loss incident regulatory reporting.",
+      "ai_agent_use": "Agents query storage access logs for data exfiltration investigation — identifying bulk download patterns, correlating storage access with identity anomalies, and generating data access scope reports for breach assessment. Powers queries like \"show me all objects accessed by this identity in the last 24 hours\" and supports automated data theft impact analysis.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Kubernetes Security Alerts",
+      "category": "Cloud & Infrastructure",
+      "priority": "should-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Container Insights via AMA (Azure Monitor for AKS); Falco runtime security alerts via CEF AMA; GKE audit logs via GCP connector; EKS audit logs via AWS CloudTrail connector",
+      "detection_use": "Container escape via privileged capabilities, malicious privileged pod deployment, Kubernetes secrets exfiltration via API, workload injection, namespace boundary violations",
+      "forensic_use": "Container compromise timeline — from initial pod breach through workload manipulation and lateral movement to host or adjacent namespace",
+      "hunting_use": "Unusual Kubernetes API caller patterns, namespace-crossing access anomalies, image pull from untrusted registries, resource creation volume outliers",
+      "threats_covered": [
+        "Cloud/Container Compromise",
+        "AI System Attacks",
+        "Agent Runtime Exploit",
+        "AI Supply Chain"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0002",
+        "TA0003",
+        "TA0004"
+      ],
+      "mitre_techniques": [
+        "T1610",
+        "T1609",
+        "T1611",
+        "T1525",
+        "T1190"
+      ],
+      "graph_use": null,
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "SecurityAlert"
+        ]
+      },
+      "notebook_analytics": null,
+      "compliance_use": "Supports NIST 800-53 SI-4 (container security monitoring), SOC 2 CC7 (threat detection in cloud-native environments), and PCI-DSS Req 6 (container and application security). Kubernetes alerts provide evidence of container security control effectiveness and runtime threat detection coverage for cloud-native compliance audits.",
+      "ai_agent_use": "Agents use Kubernetes alerts for container security triage — correlating pod-level threats with infrastructure signals, assessing container escape severity, and generating container security incident reports. Supports automated investigation of workload injection and namespace violation alerts in cloud-native environments.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Kubernetes Raw Runtime Stream",
+      "category": "Cloud & Infrastructure",
+      "priority": "nice-to-have",
+      "ingestion_pattern": "Data Lake",
+      "sentinel_connector": "Container Insights full log export via DCR to Data Lake tier; custom log collection agents (Fluentd, Fluent Bit) routing via Azure Event Hub; custom DCR tables: ContainerRuntime_Raw_CL, PodLifecycle_CL",
+      "detection_use": "Not a real-time detection source — alert-grade runtime signals handled by Kubernetes Security Alerts entry. Provides raw container runtime output for post-breach forensics.",
+      "forensic_use": "Full application execution history within compromised containers — command output, data access patterns, network calls, and error messages during the incident window",
+      "hunting_use": "Unusual application output patterns, command injection evidence in log streams, persistence mechanism discovery in container lifecycle event sequences",
+      "threats_covered": [
+        "Cloud Workload and Container Compromise",
+        "AI System Attacks"
+      ],
+      "mitre_tactics": [
+        "TA0002",
+        "TA0003"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1610",
+        "T1525"
+      ],
+      "graph_use": null,
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "ContainerRuntime_Raw_CL"
+        ]
+      },
+      "notebook_analytics": "Container behavior graph analysis, pod lifecycle pattern ML, workload anomaly detection",
+      "compliance_use": "Operational forensics support; not a primary compliance evidence source. Raw container runtime logs in the data lake provide application-level forensic evidence for post-breach investigation but are typically too granular for routine compliance audit purposes.",
+      "ai_agent_use": "Agents query raw runtime streams for deep container forensics — reconstructing application-level execution history within compromised containers, correlating runtime behavior with security alerts, and generating container forensic timeline reports. Supports investigation queries against data lake container telemetry.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Source Code, CI/CD Pipeline, and Artifact Registry Logs",
+      "category": "Cloud & Infrastructure",
+      "priority": "should-have",
+      "ingestion_pattern": "Dual-Ingest (secret scanning alerts, dependency vulnerability findings, policy violation events → Analytics; repository access and full pipeline execution stream → Data Lake)",
+      "sentinel_connector": "GitHub via native Sentinel GitHub connector (audit log API); GitLab via REST API or CEF AMA; Azure DevOps via native Sentinel connector; Azure Container Registry via Diagnostic Settings; JFrog Artifactory via Syslog and CEF AMA; package registry security alert webhooks via custom REST API",
+      "detection_use": "Developer credential compromise and source code access, secret token exposure in commits, unauthorized repository fork or clone, malicious dependency injection, CI/CD pipeline tampering",
+      "forensic_use": "Supply chain attack reconstruction — from developer credential compromise through repository access, source code modification, artifact build manipulation, and production deployment",
+      "hunting_use": "Off-hours repository access patterns, cross-repository access from single compromised identity, artifact download outliers from unexpected consumers, CI/CD pipeline step anomalies",
+      "threats_covered": [
+        "Cloud/Container Compromise",
+        "Insider Threats",
+        "AI Supply Chain"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0003",
+        "TA0042"
+      ],
+      "mitre_techniques": [
+        "T1195",
+        "T1199",
+        "T1552",
+        "T1525"
+      ],
+      "graph_use": "Development workflow edges between identity, repository, and deployment nodes. Powers supply chain attack path graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "GitHubAuditLogV2_CL"
+        ]
+      },
+      "notebook_analytics": "Deployment pipeline anomaly detection, secret exposure pattern analysis",
+      "compliance_use": "Supports SOC 2 CC8 (change management), NIST 800-53 SA/CM families (system acquisition and configuration management), PCI-DSS Req 6 (secure development lifecycle), and SOX (software change controls). Pipeline logs provide evidence of code review enforcement, artifact integrity verification, and deployment authorization controls. Critical for supply chain security audits and DevSecOps compliance.",
+      "ai_agent_use": "Agents query CI/CD logs for supply chain investigation — correlating repository access anomalies with credential compromise signals, tracing artifact build chain integrity, and generating DevSecOps security reports. Supports automated hunting for unauthorized code changes and secret exposure in pipeline execution history.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Defender for Cloud — Defender for AI Alerts",
+      "category": "AI & Agent Telemetry",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Microsoft Defender for Cloud (Sentinel connector — Defender for AI plan); AI.Azure_* and AI.Azure_Agentic_* alert types",
+      "detection_use": "Prompt injection attempts against Azure AI Foundry and Azure OpenAI endpoints, jailbreak attacks, credential exposure in AI responses, wallet/denial-of-service attacks against AI resources, anomalous tool invocation patterns",
+      "forensic_use": "AI attack timeline reconstruction — from initial prompt injection through data access, tool execution, and exfiltration via AI agent response chain",
+      "hunting_use": "Prompt content clustering for emergent attack patterns, tool invocation sequence anomalies, unusual model endpoint access volumes, cross-agent correlation",
+      "threats_covered": [
+        "AI System Attacks",
+        "Agent Runtime Exploit",
+        "Agent Data Leakage",
+        "AI Supply Chain"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0002",
+        "TA0005",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1190",
+        "T1562",
+        "T1567"
+      ],
+      "graph_use": null,
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration",
+          "triage"
+        ],
+        "tables": [
+          "SecurityAlert"
+        ]
+      },
+      "notebook_analytics": "AI attack pattern clustering, prompt injection trend analysis",
+      "compliance_use": "Supports NIST AI RMF (AI risk management), EU AI Act (high-risk AI system monitoring), SOC 2 CC7 (AI-specific threat detection), and emerging AI governance frameworks. AI security alerts provide evidence of AI system protection controls and prompt injection defense effectiveness. Retention supports AI incident reporting requirements under evolving AI safety regulations.",
+      "ai_agent_use": "Agents use Defender for AI alerts for AI-specific security triage — correlating prompt injection attempts with model access patterns, assessing AI attack severity and data exposure risk, and generating AI security incident reports. Powers automated investigation of AI workload threats and supports conversational queries about AI security posture across Azure AI endpoints.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Copilot and Agent Interaction Logs",
+      "category": "AI & Agent Telemetry",
+      "priority": "must-have",
+      "ingestion_pattern": "Analytics Tier (alert-level via Purview); Data Lake (full CopilotInteraction telemetry via OfficeActivity)",
+      "sentinel_connector": "Microsoft Purview (native connector — XPIADetected, JailbreakDetected events); OfficeActivity table CopilotInteraction records",
+      "detection_use": "Cross-prompt injection against M365 Copilot agents, jailbreak attempts, ASCII smuggling in agent outputs, anomalous Copilot interaction volume per user",
+      "forensic_use": "Full Copilot session reconstruction — prompt content, grounding sources accessed, agent responses, tool calls made, and data returned across the entire interaction chain",
+      "hunting_use": "Prompt pattern clustering across users, unusual grounding source access patterns, agent tool invocation anomalies, Copilot usage outside expected user populations",
+      "threats_covered": [
+        "AI System Attacks",
+        "Agent Runtime Exploit",
+        "Agent Data Leakage",
+        "Agentic Identity"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0002",
+        "TA0009",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1190",
+        "T1114",
+        "T1213",
+        "T1567"
+      ],
+      "graph_use": "AI interaction edges between identity, agent, and data resource nodes. Powers AI data access graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "OfficeActivity",
+          "PurviewInformationProtection"
+        ]
+      },
+      "notebook_analytics": "Copilot usage pattern ML, prompt clustering, agent behavior baseline analysis",
+      "compliance_use": "Supports GDPR (AI-mediated data access monitoring), NIST AI RMF (AI system auditability), SOC 2 CC6/CC7 (AI access controls and monitoring), and emerging AI governance mandates. Copilot interaction logs prove AI-mediated data access controls and provide audit evidence for AI safety reviews. Full session retention in the data lake enables post-incident reconstruction of AI agent behavior for regulatory reporting.",
+      "ai_agent_use": "Meta-source for AI agent operations — agents query their own interaction logs for self-assessment, correlate Copilot usage patterns with identity signals for anomaly detection, and generate AI usage and safety reports. Powers conversational investigation of AI agent behavior like \"show me all Copilot interactions that accessed sensitive documents this week\" and supports automated AI governance monitoring.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "Entra Agent ID Registry and Governance Logs",
+      "category": "AI & Agent Telemetry",
+      "priority": "should-have",
+      "ingestion_pattern": "Analytics Tier",
+      "sentinel_connector": "Microsoft Entra ID Audit Logs (agent registration, permission grant, and lifecycle events via existing Entra connector)",
+      "detection_use": "Unauthorized agent registration, excessive agent permission grants, agent identity used outside expected scope, Conditional Access bypass by agent identities",
+      "forensic_use": "Agent lifecycle audit — registration, permission escalation, usage timeline, and decommissioning for compromised agent identities",
+      "hunting_use": "Agent permission sprawl analysis, dormant agent identification, agent-to-resource access patterns outside expected baselines, cross-tenant agent access",
+      "threats_covered": [
+        "Agentic Identity Compromise",
+        "AI Supply Chain"
+      ],
+      "mitre_tactics": [
+        "TA0003",
+        "TA0004",
+        "TA0006"
+      ],
+      "mitre_techniques": [
+        "T1078",
+        "T1098",
+        "T1528",
+        "T1550"
+      ],
+      "graph_use": "Agent identity registration and permission edges. Powers agent permission scope graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "AuditLogs"
+        ]
+      },
+      "notebook_analytics": "Agent permission sprawl analysis, dormant agent detection",
+      "compliance_use": "Supports NIST AI RMF (AI identity governance), SOC 2 CC6 (logical access for non-human identities), GDPR (automated processing accountability), and emerging agent governance frameworks. Agent registry logs prove agent identity lifecycle management — registration authorization, permission scoping, and decommissioning. Critical evidence for AI governance audits as agent populations scale.",
+      "ai_agent_use": "Agents query the registry for self-identity verification and peer-agent governance — correlating agent permission grants with actual usage patterns, detecting dormant or over-privileged agent identities, and generating agent governance posture reports. Supports automated agent lifecycle compliance verification and powers queries like \"which agents have permissions they have never exercised.\"",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics"
+      ]
+    },
+    {
+      "source": "AWS CloudTrail and Security Data",
+      "category": "Federated Sources",
+      "priority": "should-have",
+      "ingestion_pattern": "Federated",
+      "sentinel_connector": "Federation via Fabric shortcut to S3 (direct S3 access), Databricks Unity Catalog with external table on S3, or ADLS Gen 2 sync via Azure Data Factory (delta parquet conversion required for ADLS)",
+      "detection_use": "Not a real-time detection source — federated data cannot drive analytics tier rules. Use data promotion via notebooks to surface cross-cloud IOCs and risk signals in the analytics tier for alerting.",
+      "forensic_use": "Cross-cloud incident reconstruction — AWS API activity, IAM credential usage, resource modifications, and CloudTrail event history for incidents that span Azure and AWS environments",
+      "hunting_use": "Cross-cloud identity correlation, AWS IAM role assumption chains, S3 data access patterns, Lambda execution anomalies, multi-cloud pivot detection",
+      "threats_covered": [
+        "Cloud Identity Abuse",
+        "Data Exfiltration",
+        "Cloud/Container Compromise",
+        "Vuln Exploitation",
+        "Access Broker",
+        "Insider Threats"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0003",
+        "TA0004",
+        "TA0005",
+        "TA0009",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1078",
+        "T1098",
+        "T1537",
+        "T1530",
+        "T1190",
+        "T1567"
+      ],
+      "graph_use": "Cross-cloud identity and resource access edges. Powers multi-cloud attack path graphs when joined with Entra sign-in data.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CloudTrail_<connectorInstance>"
+        ]
+      },
+      "notebook_analytics": "Cross-cloud identity correlation, IAM privilege escalation path analysis, multi-cloud data access pattern detection",
+      "compliance_use": "SOC 2 and NIST 800-53 cross-cloud audit evidence. Provides API activity audit trail for AWS resources. Federation preserves AWS data residency while enabling unified compliance reporting across Azure and AWS.",
+      "ai_agent_use": "AI agents join AWS CloudTrail events with Entra sign-in logs for cross-cloud identity investigation. Enables conversational queries like 'show me all AWS activity for this user in the last 30 days' during multi-cloud incident triage.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics",
+        "Data Federation"
+      ]
+    },
+    {
+      "source": "CrowdStrike Falcon Data Replicator",
+      "category": "Federated Sources",
+      "priority": "should-have",
+      "ingestion_pattern": "Federated",
+      "sentinel_connector": "Federation via Fabric shortcut to S3 (CrowdStrike FDR output bucket), Databricks Unity Catalog with external table on S3, or ADLS Gen 2 sync with delta parquet conversion",
+      "detection_use": "Not a real-time detection source — CrowdStrike alerts should be ingested via the native CrowdStrike Falcon connector for real-time detection. FDR provides the raw telemetry archive for deep investigation.",
+      "forensic_use": "Deep endpoint forensics from CrowdStrike-managed endpoints — full process execution lineage, file system changes, network connections, and registry modifications across the FDR retention window",
+      "hunting_use": "Retroactive IOC sweeps across years of endpoint telemetry, process injection pattern hunting, DLL sideloading identification, cross-fleet command-line fingerprinting on non-MDE endpoints",
+      "threats_covered": [
+        "Infostealer",
+        "Malware",
+        "Human-Op Ransomware",
+        "Vuln Exploitation",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0002",
+        "TA0003",
+        "TA0005",
+        "TA0007",
+        "TA0008"
+      ],
+      "mitre_techniques": [
+        "T1059",
+        "T1547",
+        "T1055",
+        "T1036",
+        "T1570",
+        "T1574"
+      ],
+      "graph_use": "Endpoint behavior edges from CrowdStrike process, network, and file telemetry. Enables cross-vendor endpoint graph analysis when joined with MDE DeviceEvents.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "FDR_Process_<connectorInstance>",
+          "FDR_Network_<connectorInstance>"
+        ]
+      },
+      "notebook_analytics": "Cross-vendor endpoint telemetry correlation with MDE data, retroactive IOC sweep automation, long-term behavioral baseline analysis",
+      "compliance_use": "Endpoint security audit evidence for environments using CrowdStrike. Supports NIST 800-53 SI (System and Information Integrity) controls. Federation avoids duplicating endpoint telemetry while maintaining audit access.",
+      "ai_agent_use": "AI agents query FDR telemetry for deep endpoint investigation on CrowdStrike-managed devices. Enables cross-vendor endpoint correlation — agents can compare CrowdStrike and MDE telemetry for the same incident.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics",
+        "Data Federation"
+      ]
+    },
+    {
+      "source": "Cloudflare Security Logs",
+      "category": "Federated Sources",
+      "priority": "nice-to-have",
+      "ingestion_pattern": "Federated",
+      "sentinel_connector": "Federation via Fabric shortcut to Cloudflare R2 or S3 log destination, Databricks Unity Catalog, or ADLS Gen 2 sync with delta parquet conversion",
+      "detection_use": "Not a real-time detection source — Cloudflare alerts should be handled by Cloudflare's native detection. Federated logs provide historical depth for web-facing attack investigation.",
+      "forensic_use": "Complete web-facing attack timeline — HTTP request details, WAF rule triggers, DDoS mitigation events, DNS query patterns, and Zero Trust access decisions for internet-exposed services",
+      "hunting_use": "Bot pattern analysis across extended time windows, credential stuffing campaign identification, API abuse detection, Zero Trust policy effectiveness analysis",
+      "threats_covered": [
+        "AiTM Phishing",
+        "Phishing",
+        "Vuln Exploitation",
+        "Data Exfiltration",
+        "Nation-State Espionage"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0009",
+        "TA0010",
+        "TA0011"
+      ],
+      "mitre_techniques": [
+        "T1190",
+        "T1071",
+        "T1189",
+        "T1567",
+        "T1566.002"
+      ],
+      "graph_use": null,
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "CloudflareLogs_<connectorInstance>"
+        ]
+      },
+      "notebook_analytics": "Web traffic pattern analysis, bot detection ML, API abuse statistical analysis",
+      "compliance_use": "Web application access logging for PCI-DSS Req 6 (web application security) and SOC 2 availability controls. Federation provides long-term WAF and access log retention.",
+      "ai_agent_use": "AI agents query Cloudflare logs for web-facing incident investigation. Enables correlation of external attack patterns with internal sign-in anomalies detected in Sentinel.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics",
+        "Data Federation"
+      ]
+    },
+    {
+      "source": "GCP Cloud Audit and Security Logs",
+      "category": "Federated Sources",
+      "priority": "nice-to-have",
+      "ingestion_pattern": "Federated",
+      "sentinel_connector": "Federation via Fabric shortcut to GCS, Databricks Unity Catalog with external table on GCS, or ADLS Gen 2 sync via Azure Data Factory",
+      "detection_use": "Not a real-time detection source — federated GCP data cannot drive analytics tier rules. Use data promotion for cross-cloud IOC alerting.",
+      "forensic_use": "Cross-cloud incident reconstruction for GCP environments — IAM activity, resource modifications, VPC flow data, and Cloud Audit Logs for incidents spanning Azure and GCP",
+      "hunting_use": "Cross-cloud identity pivoting, GCP service account abuse patterns, Cloud Storage access anomalies, multi-cloud lateral movement detection",
+      "threats_covered": [
+        "Cloud Identity Abuse",
+        "Data Exfiltration",
+        "Cloud/Container Compromise",
+        "Vuln Exploitation",
+        "Access Broker"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0003",
+        "TA0004",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1078",
+        "T1098",
+        "T1537",
+        "T1530",
+        "T1190"
+      ],
+      "graph_use": "Cross-cloud identity and resource access edges for GCP. Powers multi-cloud attack path visualization.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "GCPAudit_<connectorInstance>"
+        ]
+      },
+      "notebook_analytics": "Cross-cloud identity correlation, GCP IAM privilege analysis, multi-cloud data flow tracking",
+      "compliance_use": "Cross-cloud audit evidence for SOC 2, NIST 800-53, and ISO 27001. Federation enables unified compliance reporting across Azure and GCP without data movement.",
+      "ai_agent_use": "AI agents join GCP audit events with Azure activity for multi-cloud investigation. Enables cross-cloud identity tracing during incident triage.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics",
+        "Data Federation"
+      ]
+    },
+    {
+      "source": "HR and Identity Lifecycle Data",
+      "category": "Federated Sources",
+      "priority": "should-have",
+      "ingestion_pattern": "Federated",
+      "sentinel_connector": "Federation via Microsoft Fabric Lakehouse (direct — Sentinel managed identity as workspace member), or ADLS Gen 2 with delta parquet tables from HR system exports",
+      "detection_use": "Not a real-time detection source — HR data provides enrichment context, not alert signals. Notebook-driven data promotion can surface termination-correlated risk scores in the analytics tier.",
+      "forensic_use": "Insider threat investigation enrichment — employee status (active, resigning, terminated), termination effective dates, department, role changes, manager chain. Critical context for correlating behavioral anomalies with HR lifecycle events.",
+      "hunting_use": "Termination-correlated data access spikes, role-change-preceded privilege escalation patterns, departing employee data staging behavior identification",
+      "threats_covered": [
+        "Insider Threats",
+        "Data Exfiltration",
+        "Access Broker"
+      ],
+      "mitre_tactics": [
+        "TA0009",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1005",
+        "T1567",
+        "T1530"
+      ],
+      "graph_use": "Organizational relationship edges between identity, department, and manager nodes. Powers org-aware investigation and insider threat behavioral graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "HRData_<connectorInstance>"
+        ]
+      },
+      "notebook_analytics": "Insider threat risk scoring combining HR lifecycle signals with sign-in and data access behavioral baselines. Ninja Show scenario: resigning employee identified with 8x risk score via federated HR + sign-in join.",
+      "compliance_use": "Employment lifecycle audit trail for SOX (segregation of duties), HIPAA (workforce access review), and insider threat program compliance. Federation preserves HR data governance boundaries while enabling SOC access for investigations.",
+      "ai_agent_use": "Core enrichment source for AI agent insider threat triage. Agents join HR status with sign-in anomalies and data access patterns. Enables queries like 'is this user resigning or recently terminated?' during behavioral alert investigation. Demonstrated in Sentinel Federation Ninja Show.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics",
+        "Data Federation"
+      ]
+    },
+    {
+      "source": "Business Risk Signals and Fraud Analytics",
+      "category": "Federated Sources",
+      "priority": "nice-to-have",
+      "ingestion_pattern": "Federated",
+      "sentinel_connector": "Federation via Databricks Unity Catalog (custom risk scoring tables from data science pipelines), or Fabric Lakehouse with analytics output tables",
+      "detection_use": "Not a real-time detection source — risk scores computed externally. Data promotion via notebooks can surface high-risk entities in the analytics tier for real-time correlation with security events.",
+      "forensic_use": "Business fraud and risk context for security investigations — custom risk scores, fraud detection pipeline outputs, financial anomaly signals, identity verification audit trails for sensitive system access",
+      "hunting_use": "Correlation of elevated business risk scores with security behavioral anomalies, cross-domain risk pattern identification, privileged data access verification audit analysis",
+      "threats_covered": [
+        "Insider Threats",
+        "Data Exfiltration",
+        "Access Broker"
+      ],
+      "mitre_tactics": [
+        "TA0009",
+        "TA0010"
+      ],
+      "mitre_techniques": [
+        "T1005",
+        "T1567"
+      ],
+      "graph_use": "Risk score edges between identity and business asset nodes. Powers risk-aware investigation graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "RiskSignals_<connectorInstance>"
+        ]
+      },
+      "notebook_analytics": "Risk score correlation with security telemetry, fraud pattern clustering, cross-domain anomaly detection combining business and security signals",
+      "compliance_use": "Fraud detection program audit evidence for SOX (financial controls) and industry-specific regulations. Federation enables SOC access to fraud analytics without duplicating sensitive financial data.",
+      "ai_agent_use": "AI agents enrich security investigations with business risk context. Enables queries like 'what is the risk score for this user and what triggered it?' Demonstrated in Sentinel Federation Ninja Show with identity verification and risk signal tables.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics",
+        "Data Federation"
+      ]
+    },
+    {
+      "source": "Asset Inventory and Vulnerability Data",
+      "category": "Federated Sources",
+      "priority": "nice-to-have",
+      "ingestion_pattern": "Federated",
+      "sentinel_connector": "Federation via Fabric Lakehouse (CMDB exports, vulnerability scan results), ADLS Gen 2 (delta parquet from Qualys/Tenable/Rapid7 exports), or Databricks (asset analytics pipelines)",
+      "detection_use": "Not a real-time detection source — asset data provides investigation enrichment. Data promotion can surface critical-asset-impacting alerts in the analytics tier with elevated priority.",
+      "forensic_use": "Incident impact assessment enrichment — asset criticality, patch status, owner, business unit, network segment. Enables accurate blast radius scoping during containment decisions.",
+      "hunting_use": "Vulnerability-correlated exposure analysis, unpatched critical asset identification, asset ownership gap detection for orphaned systems",
+      "threats_covered": [
+        "Vuln Exploitation",
+        "Cloud/Container Compromise",
+        "Access Broker"
+      ],
+      "mitre_tactics": [
+        "TA0001",
+        "TA0007"
+      ],
+      "mitre_techniques": [
+        "T1190",
+        "T1046",
+        "T1018"
+      ],
+      "graph_use": "Asset relationship edges between device, owner, business unit, and vulnerability nodes. Powers blast radius and exposure assessment graphs.",
+      "agent_accessible": {
+        "mcp_collections": [
+          "data_exploration"
+        ],
+        "tables": [
+          "AssetInventory_<connectorInstance>",
+          "VulnData_<connectorInstance>"
+        ]
+      },
+      "notebook_analytics": "Vulnerability exposure scoring, asset criticality risk models, blast radius calculation combining asset data with lateral movement paths",
+      "compliance_use": "Asset inventory and vulnerability management evidence for NIST 800-53 CM (Configuration Management) and RA (Risk Assessment) families, PCI-DSS Req 6 (vulnerability management), and ISO 27001 asset management controls.",
+      "ai_agent_use": "AI agents enrich incident investigations with asset context — criticality, patch status, owner. Enables queries like 'is this compromised host a critical production server and when was it last patched?' during triage.",
+      "lake_surfaces": [
+        "KQL Query",
+        "Graph Analytics",
+        "Notebooks (PySpark)",
+        "Agent/MCP Access",
+        "Compliance Analytics",
+        "Data Federation"
+      ]
+    }
+  ]
+}

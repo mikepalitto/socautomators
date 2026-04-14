@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log Sources Reference v3.1 &mdash; Threat-Informed Defense Series</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Aptos', 'Segoe UI', system-ui, sans-serif;
+      background: #F5F0EB;
+      color: #1a1a1a;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .series-header {
+      max-width: 1600px;
+      margin: 0 auto 2rem;
+    }
+    .series-header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #C75B39;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
+    }
+    .series-header p {
+      font-size: 0.875rem;
+      color: #555;
+    }
+
+    /* Main table wrapper — responsive scroll */
+    .table-wrap {
+      max-width: 1600px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow-x: auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      min-width: 1600px;
+    }
+
+    thead tr { background: #2E6B8A; color: #fff; }
+
+    thead th {
+      padding: 0.7rem 0.6rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      vertical-align: bottom;
+      white-space: nowrap;
+    }
+
+    /* 11 column widths */
+    thead th:nth-child(1)  { width: 11%; }
+    thead th:nth-child(2)  { width: 7%;  }
+    thead th:nth-child(3)  { width: 7%;  }
+    thead th:nth-child(4)  { width: 13%; }
+    thead th:nth-child(5)  { width: 8%;  }
+    thead th:nth-child(6)  { width: 8%;  }
+    thead th:nth-child(7)  { width: 6%;  }
+    thead th:nth-child(8)  { width: 10%; }
+    thead th:nth-child(9)  { width: 10%; }
+    thead th:nth-child(10) { width: 10%; }
+    thead th:nth-child(11) { width: 10%; }
+
+    /* Category separator rows */
+    tr.category-row td {
+      background: #C75B39;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 0.6rem;
+      border: none;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #ede8e2;
+      transition: background 0.15s ease;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover:not(.category-row) { background: #faf7f4; }
+
+    td {
+      padding: 0.55rem 0.6rem;
+      vertical-align: top;
+      color: #333;
+    }
+
+    td strong {
+      font-weight: 600;
+      color: #1a1a1a;
+      display: block;
+      margin-bottom: 0.15rem;
+      font-size: 0.75rem;
+    }
+
+    .text-truncate {
+      max-width: 220px;
+      line-height: 1.45;
+    }
+
+    /* Priority badges */
+    .badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.12rem 0.4rem;
+      border-radius: 3px;
+      margin-top: 0.2rem;
+    }
+    .badge-must  { background: #dceef7; color: #1a5a7a; }
+    .badge-should { background: #e6f4ec; color: #1a6639; }
+    .badge-nice  { background: #f0f0f0; color: #777; border: 1px solid #ddd; }
+
+    /* Ingestion pattern chips */
+    .chip {
+      display: inline-block;
+      font-size: 0.63rem;
+      font-weight: 600;
+      padding: 0.12rem 0.4rem;
+      border-radius: 3px;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+    .chip-analytics { background: #dceef7; color: #1a5a7a; }
+    .chip-lake      { background: #e6f4ec; color: #1a6639; }
+    .chip-dual      { background: #fef4e6; color: #7a4d00; }
+    .chip-federated { background: #f3e8ff; color: #6b21a8; }
+
+    /* Threat tags */
+    .threats { display: flex; flex-wrap: wrap; gap: 0.2rem; }
+    .t-tag {
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      background: #f0eae3;
+      color: #C75B39;
+      border: 1px solid #e0d5cb;
+      white-space: nowrap;
+    }
+
+    /* MITRE tactic codes */
+    .mitre-codes {
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.62rem;
+      color: #2E6B8A;
+      line-height: 1.6;
+    }
+
+    /* Lake surface badges */
+    .lake-badges { display: flex; flex-wrap: wrap; gap: 0.2rem; }
+    .lake-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.3rem;
+      height: 1.3rem;
+      font-size: 0.58rem;
+      font-weight: 700;
+      border-radius: 3px;
+      color: #fff;
+      cursor: default;
+    }
+    .lake-k { background: #2E6B8A; }
+    .lake-g { background: #7B4FA2; }
+    .lake-n { background: #2D8E5F; }
+    .lake-a { background: #C75B39; }
+    .lake-c { background: #4a6741; } /* Compliance Analytics */
+    .lake-f { background: #6b21a8; } /* Data Federation */
+
+    /* Section heading */
+    .section-heading {
+      max-width: 1600px;
+      margin: 2.5rem auto 1rem;
+    }
+    .section-heading h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #2E6B8A;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 2px solid #2E6B8A;
+      padding-bottom: 0.4rem;
+    }
+
+    /* Threat-key table */
+    .key-table-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+    .key-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+    .key-table thead tr { background: #2E6B8A; color: #fff; }
+    .key-table thead th {
+      padding: 0.65rem 0.8rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .key-table tbody tr { border-bottom: 1px solid #ede8e2; }
+    .key-table tbody tr:hover { background: #faf7f4; }
+    .key-table td {
+      padding: 0.5rem 0.8rem;
+      vertical-align: top;
+      color: #333;
+    }
+    .key-table td strong { font-weight: 600; color: #1a1a1a; }
+
+    tr.key-cat-row td {
+      background: #e8e3dd;
+      font-weight: 700;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #555;
+      padding: 0.4rem 0.8rem;
+      border: none;
+    }
+
+    /* MITRE legend box */
+    .legend-wrap {
+      max-width: 1100px;
+      margin: 1.5rem auto 0;
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+    .legend-wrap h3 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #2E6B8A;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.8rem;
+    }
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 0.3rem 1.5rem;
+    }
+    .legend-item {
+      font-size: 0.73rem;
+      color: #333;
+      line-height: 1.6;
+    }
+    .legend-item code {
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.68rem;
+      background: #f0eae3;
+      padding: 0.1rem 0.3rem;
+      border-radius: 2px;
+      color: #2E6B8A;
+      font-weight: 600;
+    }
+
+    /* Lake-surface legend box */
+    .lake-legend {
+      max-width: 1100px;
+      margin: 1.5rem auto 0;
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .lake-legend h3 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #2E6B8A;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      width: 100%;
+      margin-bottom: 0;
+    }
+    .lake-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.73rem;
+      color: #333;
+    }
+
+    /* Footer */
+    .table-footer {
+      max-width: 1600px;
+      margin: 1.5rem auto 0;
+      font-size: 0.75rem;
+      color: #888;
+      text-align: center;
+      padding: 0.5rem 0;
+    }
+
+    /* Ingestion pattern legend */
+    .ingestion-legend {
+      max-width: 1600px;
+      margin: 0 auto 1.5rem;
+      background: #fff;
+      border: 1px solid #e0d5cb;
+      border-left: 4px solid #2E6B8A;
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .ingestion-legend h3 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #2E6B8A;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.6rem;
+    }
+    .ingestion-legend dl {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.3rem 0.75rem;
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
+    .ingestion-legend dt {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .ingestion-legend dd {
+      color: #555;
+    }
+    .chip-dual { cursor: help; }
+  </style>
+</head>
+<body>
+
+  <div class="series-header">
+    <h1>Log Sources Reference</h1>
+    <p>Threat-Informed Defense Series | The Agentic SOC &nbsp;&middot;&nbsp; socautomators.substack.com &nbsp;&middot;&nbsp; 37 sources across 7 categories &nbsp;&middot;&nbsp; MITRE ATT&amp;CK v18.1</p>
+  </div>
+
+
+  <div class="ingestion-legend">
+    <h3>Ingestion Patterns</h3>
+    <dl>
+      <dt><span class="chip chip-analytics">Analytics Tier</span></dt>
+      <dd>All events to Analytics for real-time detection. Data mirrors to Data Lake via continuous export (delayed).</dd>
+      <dt><span class="chip chip-lake">Data Lake</span></dt>
+      <dd>All events to Data Lake only. Queryable for forensics and hunting &mdash; no real-time alerting.</dd>
+      <dt><span class="chip chip-dual">Dual-Ingest</span></dt>
+      <dd>Active DCR split. Alert-grade events &rarr; Analytics for real-time detection. Full raw stream &rarr; Data Lake for forensics and hunting.</dd>
+      <dt><span class="chip chip-analytics">Analytics Mirror</span></dt>
+      <dd>Analytics data replicates to Data Lake via continuous data export rules (minutes-to-hours delay). Not a real-time split.</dd>
+    </dl>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Category</th>
+          <th>Ingestion</th>
+          <th>Detection Use</th>
+          <th>MITRE Tactics</th>
+          <th>Threats Covered</th>
+          <th>Lake Surfaces</th>
+          <th>Hunting Use</th>
+          <th>Forensic Use</th>
+          <th>Compliance Use</th>
+          <th>AI Agent Use</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="category-row">
+          <td colspan="11">Microsoft-Native (10 sources)</td>
+        </tr>
+        <tr>
+          <td><strong>Entra ID Sign-in Logs</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Password spray (multiple failures across accounts from similar ASNs), AiTM session theft signatures, risky sign-ins from unexpected locations or devices, impossible travel, sign-ins from anonymizing networks</td>
+          <td><span class="mitre-codes">TA0001, TA0003, TA0006</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">AiTM Phishing</span><span class="t-tag">Device Code Phishing</span><span class="t-tag">Cloud Identity Abuse</span><span class="t-tag">Password Spray</span><span class="t-tag">Leaked Credentials</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Access Broker</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Behavioral baselines by user: authentication location, time-of-day, application, and device patterns.</td>
+          <td class="text-truncate">Credential theft timeline reconstruction —</td>
+          <td class="text-truncate">Primary identity audit trail for SOX (access controls), HIPAA (workforce access tracking), PCI-DSS Req 10 (access logging), SOC 2 (logical access monitoring), and NIST 800-53 AC/AU families. Required evidence for access review audits, demonstrating who accessed what and when. Data lake long retention satisfies 7-year SOX and multi-year regulatory retention requirements without analytics-tier cost.</td>
+          <td class="text-truncate">Core source for AI agent triage workflows — agents correlate sign-in anomalies with entity risk scores, pull authentication context during incident investigation, and generate user access reports for compliance reviews. Powers conversational queries like &quot;show me all sign-ins for this user in the last 30 days&quot; and automated risk assessment during incident triage.</td>
+        </tr>
+        <tr>
+          <td><strong>Entra ID Audit Logs</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Role assignments to sensitive roles, new app registrations with dangerous permissions, conditional access policy weakening, service principal creation</td>
+          <td><span class="mitre-codes">TA0003, TA0004, TA0005</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">Cloud Identity Abuse</span><span class="t-tag">Leaked Credentials</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Access Broker</span><span class="t-tag">Suspicious Mailbox</span><span class="t-tag">Agentic Identity</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Administrative activity outside known change windows, role assignments by unapproved principals, out-of-pattern app registration activity</td>
+          <td class="text-truncate">Privilege escalation trace, administrative action reconstruction, service principal and managed identity persistence chain</td>
+          <td class="text-truncate">Essential audit evidence for SOX (administrative change controls), SOC 2 CC6/CC8 (change management and logical access), NIST 800-53 AC/AU/CM families, and GDPR Article 30 (processing activity records). Proves who made administrative changes, role assignments, and permission grants. Immutable lake retention supports regulatory hold and audit evidence preservation.</td>
+          <td class="text-truncate">Agents query audit logs to reconstruct privilege escalation chains during investigation, surface unauthorized role assignments in triage workflows, and generate administrative change reports. Supports conversational investigation patterns like &quot;what admin changes were made to this tenant in the last 72 hours&quot; and enriches incident context with permission change history.</td>
+        </tr>
+        <tr>
+          <td><strong>MDE Device Telemetry</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-dual" title="Analytics: Alerts, incidents, enriched detections (malware, lateral movement, persistence) | Lake: Raw Advanced Hunting tables: DeviceProcessEvents, DeviceFileEvents, DeviceNetworkEvents, DeviceRegistryEvents">Dual-Ingest</span></td>
+          <td class="text-truncate">Malware execution, fileless attacks, lateral movement via remote services, persistence mechanism creation, LOLBin abuse</td>
+          <td><span class="mitre-codes">TA0002, TA0003, TA0005, TA0007, TA0008</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">Malware</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Unusual parent-child process relationships, suspicious command-line arguments, living-off-the-land binary abuse, network connections to unusual destinations</td>
+          <td class="text-truncate">Granular endpoint timeline via DeviceProcessEvents, DeviceFileEvents, DeviceNetworkEvents, DeviceRegistryEvents —</td>
+          <td class="text-truncate">Supports NIST 800-53 SI (system integrity) and AU (audit and accountability) controls, PCI-DSS Req 5 (malware protection) and Req 10 (monitoring), and SOC 2 CC7 (system operations). Dual-ingest model ensures raw endpoint telemetry is retained in the data lake for forensic evidence preservation while alert-grade signals drive real-time compliance monitoring.</td>
+          <td class="text-truncate">Primary endpoint investigation source for AI agents — agents reconstruct process trees, correlate device events with identity signals during triage, and generate endpoint timeline reports. Powers automated alert enrichment by pulling device context, process lineage, and network connections for any entity under investigation.</td>
+        </tr>
+        <tr>
+          <td><strong>Defender for Office 365 Email Logs</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Phishing delivery, malicious attachments, credential harvesting, AiTM indicators in links, ZAP remediation events</td>
+          <td><span class="mitre-codes">TA0001, TA0009</span></td>
+          <td><div class="threats"><span class="t-tag">AiTM Phishing</span><span class="t-tag">BEC</span><span class="t-tag">Phishing</span><span class="t-tag">Email Bombing/Vishing</span><span class="t-tag">Suspicious Mailbox</span><span class="t-tag">Agent Data Leakage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Attachment patterns, URL domains and redirect chains, sender reputation trends, campaigns that evaded initial detection</td>
+          <td class="text-truncate">Phishing campaign reconstruction —</td>
+          <td class="text-truncate">Supports HIPAA (electronic communication safeguards), PCI-DSS Req 10 (audit trail for access to cardholder data systems), SOC 2 CC6 (logical access), and NIST 800-53 SI-4 (information system monitoring). Critical evidence for BEC and phishing investigation audits. Retention in the data lake satisfies email security audit requirements across multiple regulatory frameworks.</td>
+          <td class="text-truncate">Agents use email logs for automated phishing triage — correlating URL clicks with sign-in anomalies, identifying affected users, and generating phishing campaign impact reports. Powers conversational investigation like &quot;show me all users who clicked links in this phishing campaign&quot; and enriches incident context with email delivery chain details.</td>
+        </tr>
+        <tr>
+          <td><strong>Defender for Identity</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">DCSync, Kerberoasting, Pass the Hash, LDAP reconnaissance, unusual Kerberos service ticket requests —</td>
+          <td><span class="mitre-codes">TA0006, TA0007, TA0008</span></td>
+          <td><div class="threats"><span class="t-tag">Password Spray</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Access Broker</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Unusual Kerberos traffic patterns, service account authentication anomalies, LDAP query volume spikes indicating reconnaissance</td>
+          <td class="text-truncate">AD attack chain from initial compromise to domain dominance —</td>
+          <td class="text-truncate">Key evidence for SOX (privileged access controls), PCI-DSS Req 8 (authentication management), NIST 800-53 AC/IA families (identification and authentication), and SOC 2 CC6 (logical access). AD security monitoring proves control effectiveness over privileged authentication. Supports compliance audits for Kerberos-based authentication and service account governance.</td>
+          <td class="text-truncate">Agents leverage identity signals for lateral movement investigation — correlating Kerberos anomalies with device and sign-in data during triage. Supports automated detection of privilege escalation paths and generates AD security posture reports. Powers queries like &quot;show me all Kerberoasting attempts targeting service accounts this week.&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Defender for Cloud Apps</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-dual" title="Analytics: Alert-level events: impossible travel, mass download, risky OAuth consent | Lake: Full cloud app activity volume: all file operations, sharing events, login activity across SaaS apps">Dual-Ingest</span></td>
+          <td class="text-truncate">Cloud app access anomalies, OAuth consent abuse, mass file downloads, impossible travel in cloud apps</td>
+          <td><span class="mitre-codes">TA0005, TA0007, TA0009, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">Cloud Identity Abuse</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Access Broker</span><span class="t-tag">Suspicious Mailbox</span><span class="t-tag">Insider Threats</span><span class="t-tag">Agent Data Leakage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Shadow IT discovery, unusual file sharing patterns, out-of-hours access to sensitive repositories, application usage baseline deviations</td>
+          <td class="text-truncate">Data exfiltration timeline —</td>
+          <td class="text-truncate">Supports GDPR (data transfer and third-party processing monitoring), SOC 2 CC6/CC9 (vendor management and data protection), NIST 800-53 AC-20 (external information systems), and PCI-DSS Req 12 (third-party service provider management). Shadow IT discovery evidence for vendor risk assessments. Data lake retention preserves cloud app access history for regulatory inquiries.</td>
+          <td class="text-truncate">Agents query cloud app events for data exfiltration investigation — correlating unusual file sharing with identity anomalies and generating shadow IT exposure reports. Powers conversational queries like &quot;what cloud apps did this user access during the incident window&quot; and enriches triage context with OAuth consent and app activity data.</td>
+        </tr>
+        <tr>
+          <td><strong>Azure Activity Logs</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Unauthorized resource deployment, role elevation in Azure subscriptions, security configuration changes, storage account permission modifications</td>
+          <td><span class="mitre-codes">TA0003, TA0004, TA0005</span></td>
+          <td><div class="threats"><span class="t-tag">Cloud Identity Abuse</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Access Broker</span><span class="t-tag">Agentic Identity</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Infrastructure change patterns outside change windows, unusual deployment activity, resource access from unexpected service principals</td>
+          <td class="text-truncate">Cloud pivot reconstruction —</td>
+          <td class="text-truncate">Primary cloud infrastructure audit trail for SOX (change management controls), SOC 2 CC8 (change management), NIST 800-53 CM/AU families, and PCI-DSS Req 10 (audit trails for system components). Proves who modified cloud resources, when, and what changed. Essential evidence for cloud security posture audits and infrastructure change reviews.</td>
+          <td class="text-truncate">Agents use activity logs to investigate cloud infrastructure changes during incidents — identifying resource modifications, role assignments, and configuration drift. Supports automated compliance reporting and powers queries like &quot;what Azure resources were modified by this service principal in the last 48 hours.&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Azure Firewall and NSG Flow Logs</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-lake">Data Lake</span></td>
+          <td class="text-truncate">Lateral movement patterns, C2 communication to known-bad infrastructure, unusual outbound data volumes</td>
+          <td><span class="mitre-codes">TA0008, TA0010, TA0011</span></td>
+          <td><div class="threats"><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Traffic baseline deviation, unusual port usage, external destination anomalies, long-duration low-volume exfiltration patterns</td>
+          <td class="text-truncate">Network path reconstruction —</td>
+          <td class="text-truncate">Supports PCI-DSS Req 1 (firewall and network segmentation), NIST 800-53 SC (system and communications protection) and AU families, and SOC 2 CC6 (network security). Network flow data provides evidence of segmentation effectiveness and traffic control compliance. Data lake retention enables long-term network forensics for regulatory investigations.</td>
+          <td class="text-truncate">Agents query flow logs for network-layer investigation — tracing lateral movement paths, identifying data exfiltration channels, and correlating network connections with endpoint and identity signals during triage. Supports queries like &quot;show me all outbound connections from this device during the incident window.&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Endpoint Process Events (Sysmon / Event ID 4688)</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-lake">Data Lake</span></td>
+          <td class="text-truncate">Process creation with command-line arguments catching execution not triggering EDR alerts;</td>
+          <td><span class="mitre-codes">TA0002, TA0003, TA0005</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">Malware</span><span class="t-tag">Human-Op Ransomware</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Legitimate tools with suspicious arguments, LOLBIN abuse patterns, command-line fingerprinting across fleet</td>
+          <td class="text-truncate">Complete process trees via Sysmon GUID correlation across reboots —</td>
+          <td class="text-truncate">Supports NIST 800-53 AU-2/AU-12 (auditable events and audit generation), PCI-DSS Req 10 (audit trail), and SOC 2 CC7 (system operations monitoring). Process-level execution logs provide defense-in-depth evidence for endpoints not covered by primary EDR. Data lake retention preserves execution history for post-breach regulatory reporting.</td>
+          <td class="text-truncate">Agents use process events to reconstruct execution chains on non-MDE endpoints during investigation, correlate process lineage with threat intelligence, and generate LOLBin usage reports. Supports deep-dive forensic queries across the full fleet where MDE coverage gaps exist.</td>
+        </tr>
+        <tr>
+          <td><strong>Microsoft Purview Information Protection</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Microsoft-Native</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Cross-prompt injection attacks against M365 Copilot and Copilot Studio agents (XPIADetected), jailbreak attempts against AI agents (JailbreakDetected)</td>
+          <td><span class="mitre-codes">TA0001, TA0002, TA0005, TA0009, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">AI System Attacks</span><span class="t-tag">Agent Runtime Exploit</span><span class="t-tag">Agent Data Leakage</span><span class="t-tag">Agentic Identity</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Anomalous agent invocation patterns, prompt content clustering, unusual tool execution sequences through AI agents</td>
+          <td class="text-truncate">AI agent interaction audit trail —</td>
+          <td class="text-truncate">Primary data governance audit trail for GDPR (Article 30 processing records and Article 35 DPIA evidence), HIPAA (PHI access tracking), SOX (sensitive data access controls), PCI-DSS Req 3 (cardholder data protection), and NIST 800-53 MP/SC families. Proves data classification, labeling, and protection policy enforcement. Critical evidence for data breach notification compliance and AI safety governance.</td>
+          <td class="text-truncate">Agents query Purview data for AI-specific security triage — correlating prompt injection alerts with data access patterns, investigating cross-prompt injection chains, and generating AI safety incident reports. Powers conversational investigation of AI agent interactions and supports automated assessment of data exposure risk from AI-mediated access.</td>
+        </tr>
+        <tr class="category-row">
+          <td colspan="11">Network (7 sources)</td>
+        </tr>
+        <tr>
+          <td><strong>DNS Logs</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Network</td>
+          <td><span class="chip chip-dual" title="Analytics: High-signal alerts: DGA detections, DNS tunneling, known-bad domain lookups via DnsEvents | Lake: Full DNS query stream for baseline building, rare domain hunting, and C2 pattern analysis">Dual-Ingest</span></td>
+          <td class="text-truncate">DGA domain detection, DNS tunneling for C2 and exfiltration, fast-flux lookups, newly registered domain queries, DNS-over-HTTPS evasion</td>
+          <td><span class="mitre-codes">TA0011, TA0010, TA0007</span></td>
+          <td><div class="threats"><span class="t-tag">Malware</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Entropy-based DGA hunting, beaconing interval analysis, passive DNS correlation with threat intel feeds, long-tail domain querying patterns</td>
+          <td class="text-truncate">Attacker infrastructure mapping —</td>
+          <td class="text-truncate">Supports NIST 800-53 SI-4 (network monitoring) and AU families, PCI-DSS Req 10 (audit trails), and SOC 2 CC7 (system operations). DNS resolution history provides forensic evidence for C2 infrastructure identification and data exfiltration channel detection. Dual-ingest retention ensures long-term DNS query history for regulatory investigations.</td>
+          <td class="text-truncate">Agents use DNS logs for C2 infrastructure investigation — correlating suspicious domain queries with endpoint and network signals, performing automated DGA detection, and enriching incident context with domain resolution history. Powers queries like &quot;show me all DNS queries to newly registered domains from this device.&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Proxy and URL Filtering Logs</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Network</td>
+          <td><span class="chip chip-dual" title="Analytics: Policy violations, threat category matches, blocked malicious URLs | Lake: Full HTTP/HTTPS request stream for retroactive IOC sweeps and user browsing forensics">Dual-Ingest</span></td>
+          <td class="text-truncate">Phishing URL access, drive-by download, C2 HTTP/HTTPS callbacks, credential form submission to external sites, malware distribution network access</td>
+          <td><span class="mitre-codes">TA0001, TA0010, TA0011</span></td>
+          <td><div class="threats"><span class="t-tag">AiTM Phishing</span><span class="t-tag">Phishing</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Domain category anomalies, user-agent string deviations, upload-to-download ratio outliers, long-dwell low-volume exfiltration patterns</td>
+          <td class="text-truncate">Full browsing timeline —</td>
+          <td class="text-truncate">Supports PCI-DSS Req 1 (web filtering and access controls), NIST 800-53 SC-7 (boundary protection) and AU families, SOC 2 CC6 (logical access), and HIPAA (electronic safeguards for web-based access). Web access logs provide evidence of acceptable use policy enforcement and outbound data transfer controls. Data lake retention preserves browsing history for insider threat and data loss investigations.</td>
+          <td class="text-truncate">Agents query proxy logs for web-based attack investigation — tracing phishing click chains, correlating URL access with credential compromise timelines, and generating web activity reports for affected users. Supports automated beacon detection and powers queries like &quot;show me all web requests to this domain across the fleet.&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Firewall / IPS / IDS Alerts</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Network</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Alert-grade signals only: exploit attempts against network-exposed services, port scanning and reconnaissance, known malware C2 traffic blocks, IPS rule hits.</td>
+          <td><span class="mitre-codes">TA0001, TA0011, TA0043</span></td>
+          <td><div class="threats"><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Repeated block patterns indicating persistence, allowed traffic that bypassed IPS signatures, slow multi-day reconnaissance patterns —</td>
+          <td class="text-truncate">Network attack chain reconstruction —</td>
+          <td class="text-truncate">Supports PCI-DSS Req 11 (IDS/IPS deployment and monitoring), NIST 800-53 SI-4 (intrusion detection), and SOC 2 CC7 (system operations and threat detection). Alert-grade network security events provide compliance evidence for perimeter defense effectiveness and intrusion attempt documentation.</td>
+          <td class="text-truncate">Agents use firewall and IPS alerts for automated triage — correlating network threat signals with endpoint and identity events, scoring alert severity based on contextual enrichment, and generating perimeter threat summary reports. Supports rapid alert disposition in agentic SOC workflows.</td>
+        </tr>
+        <tr>
+          <td><strong>Firewall Raw Session and Traffic Logs (North-South)</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Network</td>
+          <td><span class="chip chip-dual" title="Analytics: Threat intelligence hits, block summaries, and high-severity connection alerts | Lake: Full session traffic stream (source/dest/port/bytes/duration) for traffic pattern analysis">Dual-Ingest</span></td>
+          <td class="text-truncate">Not suited for real-time analytics rules at full volume — too expensive at enterprise scale.</td>
+          <td><span class="mitre-codes">TA0010, TA0011, TA0008</span></td>
+          <td><div class="threats"><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Long-duration allowed sessions indicating C2 beaconing or slow data staging, geo/ASN-based connection outliers, port and protocol abuse at the perimeter, high-bandwidth single-session outliers, connections to newly registered or categorized-unknown destinations</td>
+          <td class="text-truncate">Complete perimeter session reconstruction — every connection allowed or denied at the north-south boundary.</td>
+          <td class="text-truncate">Supports PCI-DSS Req 1 (firewall configuration and traffic monitoring), NIST 800-53 SC/AU families (network protection and audit), and SOC 2 CC6 (network security). Full perimeter session logs provide comprehensive network activity evidence for compliance audits. Data lake retention is essential — analytics-tier ingestion at full volume is cost-prohibitive, making the data lake the compliance-grade retention layer.</td>
+          <td class="text-truncate">Agents query raw session logs for deep network forensics — tracing complete perimeter traffic flows during incidents, identifying exfiltration channels missed by IPS, and generating session-level network timeline reports. Supports investigation queries against the data lake for historical perimeter activity reconstruction.</td>
+        </tr>
+        <tr>
+          <td><strong>East-West Firewall and Micro-Segmentation Logs</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Network</td>
+          <td><span class="chip chip-dual" title="Analytics: Policy violation alerts and cross-zone anomalies | Lake: Full internal traffic flow stream for lateral movement hunting and segmentation validation">Dual-Ingest</span></td>
+          <td class="text-truncate">Anomalous lateral movement across network segments —</td>
+          <td><span class="mitre-codes">TA0008, TA0007</span></td>
+          <td><div class="threats"><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Access Broker</span><span class="t-tag">Nation-State Espionage</span><span class="t-tag">Insider Threats</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Peer-group deviation for server-to-server communication patterns, unusual inter-segment protocol usage (SMB, RDP, WMI out of baseline), scanning traffic originating from newly compromised hosts, inter-segment data transfer volume anomalies outside maintenance windows</td>
+          <td class="text-truncate">Internal blast radius reconstruction — trace every segment and host an attacker traversed after initial access.</td>
+          <td class="text-truncate">Supports PCI-DSS Req 1 (network segmentation validation), NIST 800-53 SC-7 (boundary protection) and AC-4 (information flow enforcement), and SOC 2 CC6 (network security). Internal traffic logs provide segmentation effectiveness evidence — critical for PCI scoping audits and zero-trust architecture validation.</td>
+          <td class="text-truncate">Agents query east-west logs for lateral movement investigation — tracing internal traffic flows between compromised hosts, validating micro-segmentation containment effectiveness, and generating blast radius reports. Powers queries like &quot;show me all cross-segment connections from this compromised host during the incident window.&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Web Application Firewall Logs</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Network</td>
+          <td><span class="chip chip-dual" title="Analytics: Blocked and Detected events (SQLi, XSS, OWASP rule triggers) | Lake: Full WAF request log stream for application attack pattern analysis">Dual-Ingest</span></td>
+          <td class="text-truncate">SQL injection, cross-site scripting, path traversal, web shell upload, application-layer DDoS, API endpoint abuse</td>
+          <td><span class="mitre-codes">TA0001, TA0002</span></td>
+          <td><div class="threats"><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Scanner tool fingerprinting via request patterns, payload signature clustering, slow application brute force across multi-day windows</td>
+          <td class="text-truncate">Complete HTTP session history for web-based initial access —</td>
+          <td class="text-truncate">Supports PCI-DSS Req 6 (web application security), NIST 800-53 SI-3/SI-4 (malicious code protection and monitoring), and SOC 2 CC7 (threat detection). WAF logs provide evidence of application-layer attack prevention and web application security control effectiveness for compliance audits.</td>
+          <td class="text-truncate">Agents use WAF logs for web attack investigation — correlating application-layer attack patterns with infrastructure signals, triaging SQL injection and XSS attempts, and generating web application threat reports. Supports automated severity assessment of web-based exploitation attempts.</td>
+        </tr>
+        <tr>
+          <td><strong>Network Detection and Response (NDR)</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Network</td>
+          <td><span class="chip chip-dual" title="Analytics: High-confidence detections and correlated threat events | Lake: Raw network flow metadata and session telemetry for behavioral hunting">Dual-Ingest</span></td>
+          <td class="text-truncate">Anomalous lateral movement patterns, C2 beaconing to external infrastructure, unusual data staging and transfer, insider threat behavioral signals</td>
+          <td><span class="mitre-codes">TA0008, TA0010, TA0011</span></td>
+          <td><div class="threats"><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Access Broker</span><span class="t-tag">Nation-State Espionage</span><span class="t-tag">Insider Threats</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Protocol anomaly hunting, encrypted traffic behavioral analysis, peer-group deviation detection, unusual internal port usage patterns</td>
+          <td class="text-truncate">Full east-west traffic reconstruction —</td>
+          <td class="text-truncate">Operational forensics support; not a primary compliance evidence source. NDR behavioral analytics complement compliance-grade sources by providing network-level anomaly context for incident investigations required under breach notification regulations (GDPR Article 33, HIPAA breach rule).</td>
+          <td class="text-truncate">Agents leverage NDR signals for behavioral network investigation — correlating anomalous lateral movement with endpoint and identity data, enriching triage with protocol-level anomaly context, and supporting automated C2 detection workflows. Provides network behavioral context that enhances agent investigation depth.</td>
+        </tr>
+        <tr class="category-row">
+          <td colspan="11">Identity &amp; Access (2 sources)</td>
+        </tr>
+        <tr>
+          <td><strong>VPN Logs</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Identity &amp; Access</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Impossible travel via VPN infrastructure, credential stuffing against VPN endpoints, split-tunnel exploitation, unauthorized VPN client access from untrusted devices</td>
+          <td><span class="mitre-codes">TA0001, TA0006</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">Password Spray</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Access Broker</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Off-hours VPN access patterns, unusual client network provider patterns, concurrent session anomalies, geographic outlier connections</td>
+          <td class="text-truncate">Remote access timeline for the compromised credential —</td>
+          <td class="text-truncate">Supports PCI-DSS Req 8 (remote access authentication), NIST 800-53 AC-17 (remote access controls) and IA families, SOC 2 CC6 (logical access), and HIPAA (remote workforce access safeguards). VPN logs prove remote access control effectiveness and authorized remote session documentation. Required evidence for remote access audits.</td>
+          <td class="text-truncate">Agents use VPN logs for remote access investigation — correlating VPN sessions with sign-in anomalies, detecting impossible travel via VPN infrastructure, and generating remote access timeline reports for compromised credentials. Powers queries like &quot;show me all VPN sessions for this user in the last 7 days.&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Privileged Access Management Logs</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Identity &amp; Access</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Unauthorized privileged credential checkout, PAM vault bypass attempts, privileged access outside change windows, session recording termination anomalies</td>
+          <td><span class="mitre-codes">TA0004, TA0006</span></td>
+          <td><div class="threats"><span class="t-tag">Access Broker Activity</span><span class="t-tag">Insider Threats</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">After-hours privileged access patterns, credential checkout volume spikes, sequential multi-system access by single operator, vault access from unusual workstations</td>
+          <td class="text-truncate">Privileged access chain —</td>
+          <td class="text-truncate">Primary privileged access audit trail for SOX (privileged access controls), PCI-DSS Req 8 (privileged credential management), NIST 800-53 AC-2/AC-6 (account management and least privilege), SOC 2 CC6 (logical access), and HIPAA (administrative access controls). Proves privileged credential checkout authorization, session recording, and just-in-time access enforcement. Critical evidence for privileged access reviews.</td>
+          <td class="text-truncate">Agents query PAM logs during privilege escalation investigation — correlating credential checkout events with target system activity, detecting unauthorized privileged access patterns, and generating privileged session audit reports. Supports automated just-in-time access compliance verification and powers privileged access anomaly detection.</td>
+        </tr>
+        <tr class="category-row">
+          <td colspan="11">Endpoint (4 sources)</td>
+        </tr>
+        <tr>
+          <td><strong>Windows Server Security Events</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>Endpoint</td>
+          <td><span class="chip chip-dual" title="Analytics: Scoped Event IDs: 4624, 4625, 4728, 4729, 4740, 4769, 4772, 4776, 7045 | Lake: Full Windows Security Event stream for forensic chain reconstruction">Dual-Ingest</span></td>
+          <td class="text-truncate">Pass-the-Hash, Kerberoasting, local administrator group abuse, unauthorized service installation, account lockout pattern attacks</td>
+          <td><span class="mitre-codes">TA0001, TA0004, TA0006, TA0008</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">Password Spray</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Access Broker</span><span class="t-tag">Nation-State Espionage</span><span class="t-tag">Insider Threats</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Logon type distribution anomalies, service account authentication from non-standard hosts, suspicious scheduled task creation, LSASS access events</td>
+          <td class="text-truncate">Windows authentication chain reconstruction —</td>
+          <td class="text-truncate">Core Windows audit trail for SOX (server access controls), PCI-DSS Req 10 (audit trails for system components), NIST 800-53 AU/AC families, SOC 2 CC6/CC7 (logical access and system operations), and HIPAA (system access monitoring). Scoped event IDs provide evidence of authentication, privilege escalation, and service installation controls. Dual-ingest retention preserves full event history for regulatory investigations.</td>
+          <td class="text-truncate">Agents use Windows security events for server-side investigation — correlating authentication events with lateral movement indicators, reconstructing credential usage chains, and generating Windows authentication timeline reports. Powers queries like &quot;show me all logon events for this service account across domain controllers.&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Linux Server AuditD Logs</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Endpoint</td>
+          <td><span class="chip chip-dual" title="Analytics: Privilege escalation alerts, sudo abuse, SUID execution, unauthorized access attempts | Lake: Full AuditD stream for process execution forensics and file integrity analysis">Dual-Ingest</span></td>
+          <td class="text-truncate">Privilege escalation via SUID/GUID binaries, unauthorized sudo usage, malicious cron job installation, reverse shell execution, rootkit installation attempts</td>
+          <td><span class="mitre-codes">TA0002, TA0003, TA0004</span></td>
+          <td><div class="threats"><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Insider Threats</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Unusual execve argument patterns, command-line fingerprinting across fleet, file access to credential stores (/etc/passwd, /etc/shadow, SSH key directories)</td>
+          <td class="text-truncate">Linux attack chain reconstruction —</td>
+          <td class="text-truncate">Supports PCI-DSS Req 10 (audit trails for Linux systems), NIST 800-53 AU/AC families, SOC 2 CC6/CC7 (system access and operations monitoring), and CIS benchmark compliance evidence. AuditD logs provide Linux-equivalent audit coverage for privilege escalation, process execution, and file access. Data lake retention preserves syscall-level evidence for forensic and regulatory needs.</td>
+          <td class="text-truncate">Agents query AuditD logs for Linux server investigation — reconstructing privilege escalation chains, correlating syscall sequences with known attack patterns, and generating Linux security event reports. Supports automated hunting for SUID abuse and unauthorized cron modifications across the Linux fleet.</td>
+        </tr>
+        <tr>
+          <td><strong>Third-Party EDR Alerts</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Endpoint</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Process injection, fileless malware execution, ransomware pre-stage behaviors, credential dumping, living-off-the-land tool abuse, encoded command execution</td>
+          <td><span class="mitre-codes">TA0002, TA0003, TA0005, TA0006</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">Malware</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Process lineage anomalies, unusual parent-child execution relationships, LOLBin execution patterns, encoded PowerShell script clusters across the fleet</td>
+          <td class="text-truncate">Endpoint attack timeline from initial code execution through persistence, privilege escalation, and lateral movement preparation</td>
+          <td class="text-truncate">Supports NIST 800-53 SI-3/SI-4 (malicious code detection and monitoring), PCI-DSS Req 5 (malware protection), and SOC 2 CC7 (threat detection). Cross-vendor EDR alerts provide evidence of endpoint protection coverage and threat detection effectiveness across heterogeneous endpoint environments. Alert retention supports incident documentation for regulatory reporting.</td>
+          <td class="text-truncate">Agents use third-party EDR alerts for cross-vendor endpoint triage — correlating alerts from CrowdStrike, SentinelOne, or Carbon Black with Microsoft-native signals, normalizing severity across vendors, and generating unified endpoint threat reports. Supports agentic workflows that span multi-vendor endpoint environments.</td>
+        </tr>
+        <tr>
+          <td><strong>Third-Party EDR Raw Telemetry</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Endpoint</td>
+          <td><span class="chip chip-lake">Data Lake</span></td>
+          <td class="text-truncate">Not a real-time detection source —</td>
+          <td><span class="mitre-codes">TA0002, TA0005, TA0007, TA0008</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">Malware</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Process injection pattern hunting, DLL sideloading identification, fileless script execution reconstruction, lateral tool transfer analysis, persistence mechanism enumeration</td>
+          <td class="text-truncate">Deep endpoint forensics —</td>
+          <td class="text-truncate">Operational forensics support; not a primary compliance evidence source. Raw EDR telemetry in the data lake provides deep forensic evidence for post-breach investigations required under breach notification regulations but is not typically referenced in routine compliance audits.</td>
+          <td class="text-truncate">Agents query raw EDR telemetry for deep forensic investigation — reconstructing process injection chains, correlating cross-vendor endpoint activity with network and identity signals, and generating detailed endpoint forensic reports. Data lake access enables historical retroactive IOC matching across the full retention window.</td>
+        </tr>
+        <tr class="category-row">
+          <td colspan="11">Cloud &amp; Infrastructure (4 sources)</td>
+        </tr>
+        <tr>
+          <td><strong>Cloud Storage Access Logs</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Cloud &amp; Infrastructure</td>
+          <td><span class="chip chip-dual" title="Analytics: Anomalous access alerts: bulk downloads, unusual hours, cross-geography access | Lake: Full object-level access stream for data movement forensics and insider threat hunting">Dual-Ingest</span></td>
+          <td class="text-truncate">Bulk data exfiltration via cloud object storage, public bucket misconfiguration exploitation, cross-account data theft, storage encryption ransomware staging</td>
+          <td><span class="mitre-codes">TA0009, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">Data Exfiltration</span><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Access Broker</span><span class="t-tag">Insider Threats</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Off-hours storage access patterns, service account accessing buckets outside operational baseline, large single-session download outliers</td>
+          <td class="text-truncate">Data theft scope dossier —</td>
+          <td class="text-truncate">Supports GDPR (data transfer and storage monitoring), PCI-DSS Req 3/10 (cardholder data storage and audit trails), NIST 800-53 AC-3/AU families (access enforcement and audit), SOC 2 CC6 (data protection), and HIPAA (electronic PHI storage safeguards). Object-level access logs prove data access controls and provide evidence for data breach scope determination. Critical for data loss incident regulatory reporting.</td>
+          <td class="text-truncate">Agents query storage access logs for data exfiltration investigation — identifying bulk download patterns, correlating storage access with identity anomalies, and generating data access scope reports for breach assessment. Powers queries like &quot;show me all objects accessed by this identity in the last 24 hours&quot; and supports automated data theft impact analysis.</td>
+        </tr>
+        <tr>
+          <td><strong>Kubernetes Security Alerts</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Cloud &amp; Infrastructure</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Container escape via privileged capabilities, malicious privileged pod deployment, Kubernetes secrets exfiltration via API, workload injection, namespace boundary violations</td>
+          <td><span class="mitre-codes">TA0001, TA0002, TA0003, TA0004</span></td>
+          <td><div class="threats"><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">AI System Attacks</span><span class="t-tag">Agent Runtime Exploit</span><span class="t-tag">AI Supply Chain</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Unusual Kubernetes API caller patterns, namespace-crossing access anomalies, image pull from untrusted registries, resource creation volume outliers</td>
+          <td class="text-truncate">Container compromise timeline —</td>
+          <td class="text-truncate">Supports NIST 800-53 SI-4 (container security monitoring), SOC 2 CC7 (threat detection in cloud-native environments), and PCI-DSS Req 6 (container and application security). Kubernetes alerts provide evidence of container security control effectiveness and runtime threat detection coverage for cloud-native compliance audits.</td>
+          <td class="text-truncate">Agents use Kubernetes alerts for container security triage — correlating pod-level threats with infrastructure signals, assessing container escape severity, and generating container security incident reports. Supports automated investigation of workload injection and namespace violation alerts in cloud-native environments.</td>
+        </tr>
+        <tr>
+          <td><strong>Kubernetes Raw Runtime Stream</strong><span class="badge badge-nice">Recommended</span></td>
+          <td>Cloud &amp; Infrastructure</td>
+          <td><span class="chip chip-lake">Data Lake</span></td>
+          <td class="text-truncate">Not a real-time detection source — alert-grade runtime signals handled by Kubernetes Security Alerts entry.</td>
+          <td><span class="mitre-codes">TA0002, TA0003</span></td>
+          <td><div class="threats"><span class="t-tag">Cloud Workload and Container Compromise</span><span class="t-tag">AI System Attacks</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Unusual application output patterns, command injection evidence in log streams, persistence mechanism discovery in container lifecycle event sequences</td>
+          <td class="text-truncate">Full application execution history within compromised containers —</td>
+          <td class="text-truncate">Operational forensics support; not a primary compliance evidence source. Raw container runtime logs in the data lake provide application-level forensic evidence for post-breach investigation but are typically too granular for routine compliance audit purposes.</td>
+          <td class="text-truncate">Agents query raw runtime streams for deep container forensics — reconstructing application-level execution history within compromised containers, correlating runtime behavior with security alerts, and generating container forensic timeline reports. Supports investigation queries against data lake container telemetry.</td>
+        </tr>
+        <tr>
+          <td><strong>Source Code, CI/CD Pipeline, and Artifact Registry Logs</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Cloud &amp; Infrastructure</td>
+          <td><span class="chip chip-dual" title="Analytics: Secret scanning alerts, dependency vulnerability findings, policy violations | Lake: Repository access logs and full pipeline execution stream for supply chain forensics">Dual-Ingest</span></td>
+          <td class="text-truncate">Developer credential compromise and source code access, secret token exposure in commits, unauthorized repository fork or clone, malicious dependency injection, CI/CD pipeline tampering</td>
+          <td><span class="mitre-codes">TA0001, TA0003, TA0042</span></td>
+          <td><div class="threats"><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Insider Threats</span><span class="t-tag">AI Supply Chain</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Off-hours repository access patterns, cross-repository access from single compromised identity, artifact download outliers from unexpected consumers, CI/CD pipeline step anomalies</td>
+          <td class="text-truncate">Supply chain attack reconstruction —</td>
+          <td class="text-truncate">Supports SOC 2 CC8 (change management), NIST 800-53 SA/CM families (system acquisition and configuration management), PCI-DSS Req 6 (secure development lifecycle), and SOX (software change controls). Pipeline logs provide evidence of code review enforcement, artifact integrity verification, and deployment authorization controls. Critical for supply chain security audits and DevSecOps compliance.</td>
+          <td class="text-truncate">Agents query CI/CD logs for supply chain investigation — correlating repository access anomalies with credential compromise signals, tracing artifact build chain integrity, and generating DevSecOps security reports. Supports automated hunting for unauthorized code changes and secret exposure in pipeline execution history.</td>
+        </tr>
+        <tr class="category-row">
+          <td colspan="11">AI &amp; Agent Telemetry (3 sources)</td>
+        </tr>
+        <tr>
+          <td><strong>Defender for Cloud — Defender for AI Alerts</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>AI &amp; Agent Telemetry</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Prompt injection attempts against Azure AI Foundry and Azure OpenAI endpoints, jailbreak attacks, credential exposure in AI responses, wallet/denial-of-service attacks against AI resources, anomalous tool invocation patterns</td>
+          <td><span class="mitre-codes">TA0001, TA0002, TA0005, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">AI System Attacks</span><span class="t-tag">Agent Runtime Exploit</span><span class="t-tag">Agent Data Leakage</span><span class="t-tag">AI Supply Chain</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Prompt content clustering for emergent attack patterns, tool invocation sequence anomalies, unusual model endpoint access volumes, cross-agent correlation</td>
+          <td class="text-truncate">AI attack timeline reconstruction —</td>
+          <td class="text-truncate">Supports NIST AI RMF (AI risk management), EU AI Act (high-risk AI system monitoring), SOC 2 CC7 (AI-specific threat detection), and emerging AI governance frameworks. AI security alerts provide evidence of AI system protection controls and prompt injection defense effectiveness. Retention supports AI incident reporting requirements under evolving AI safety regulations.</td>
+          <td class="text-truncate">Agents use Defender for AI alerts for AI-specific security triage — correlating prompt injection attempts with model access patterns, assessing AI attack severity and data exposure risk, and generating AI security incident reports. Powers automated investigation of AI workload threats and supports conversational queries about AI security posture across Azure AI endpoints.</td>
+        </tr>
+        <tr>
+          <td><strong>Copilot and Agent Interaction Logs</strong><span class="badge badge-must">Must-Have</span></td>
+          <td>AI &amp; Agent Telemetry</td>
+          <td><span class="chip chip-dual" title="Analytics: XPIADetected, JailbreakDetected events via Purview Information Protection | Lake: Full CopilotInteraction telemetry via OfficeActivity: prompts, responses, plugin invocations">Dual-Ingest</span></td>
+          <td class="text-truncate">Cross-prompt injection against M365 Copilot agents, jailbreak attempts, ASCII smuggling in agent outputs, anomalous Copilot interaction volume per user</td>
+          <td><span class="mitre-codes">TA0001, TA0002, TA0009, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">AI System Attacks</span><span class="t-tag">Agent Runtime Exploit</span><span class="t-tag">Agent Data Leakage</span><span class="t-tag">Agentic Identity</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Prompt pattern clustering across users, unusual grounding source access patterns, agent tool invocation anomalies, Copilot usage outside expected user populations</td>
+          <td class="text-truncate">Full Copilot session reconstruction —</td>
+          <td class="text-truncate">Supports GDPR (AI-mediated data access monitoring), NIST AI RMF (AI system auditability), SOC 2 CC6/CC7 (AI access controls and monitoring), and emerging AI governance mandates. Copilot interaction logs prove AI-mediated data access controls and provide audit evidence for AI safety reviews. Full session retention in the data lake enables post-incident reconstruction of AI agent behavior for regulatory reporting.</td>
+          <td class="text-truncate">Meta-source for AI agent operations — agents query their own interaction logs for self-assessment, correlate Copilot usage patterns with identity signals for anomaly detection, and generate AI usage and safety reports. Powers conversational investigation of AI agent behavior like &quot;show me all Copilot interactions that accessed sensitive documents this week&quot; and supports automated AI governance monitoring.</td>
+        </tr>
+        <tr>
+          <td><strong>Entra Agent ID Registry and Governance Logs</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>AI &amp; Agent Telemetry</td>
+          <td><span class="chip chip-analytics">Analytics</span></td>
+          <td class="text-truncate">Unauthorized agent registration, excessive agent permission grants, agent identity used outside expected scope, Conditional Access bypass by agent identities</td>
+          <td><span class="mitre-codes">TA0003, TA0004, TA0006</span></td>
+          <td><div class="threats"><span class="t-tag">Agentic Identity Compromise</span><span class="t-tag">AI Supply Chain</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span></div></td>
+          <td class="text-truncate">Agent permission sprawl analysis, dormant agent identification, agent-to-resource access patterns outside expected baselines, cross-tenant agent access</td>
+          <td class="text-truncate">Agent lifecycle audit —</td>
+          <td class="text-truncate">Supports NIST AI RMF (AI identity governance), SOC 2 CC6 (logical access for non-human identities), GDPR (automated processing accountability), and emerging agent governance frameworks. Agent registry logs prove agent identity lifecycle management — registration authorization, permission scoping, and decommissioning. Critical evidence for AI governance audits as agent populations scale.</td>
+          <td class="text-truncate">Agents query the registry for self-identity verification and peer-agent governance — correlating agent permission grants with actual usage patterns, detecting dormant or over-privileged agent identities, and generating agent governance posture reports. Supports automated agent lifecycle compliance verification and powers queries like &quot;which agents have permissions they have never exercised.&quot;</td>
+        </tr>
+        <tr class="category-row">
+          <td colspan="11">Federated Sources (7 sources)</td>
+        </tr>
+        <tr>
+          <td><strong>AWS CloudTrail and Security Data</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Federated Sources</td>
+          <td><span class="chip chip-federated">Federated</span></td>
+          <td class="text-truncate">Not a real-time detection source — federated data cannot drive analytics tier rules. Use data promotion via notebooks to surface cross-cloud IOCs and risk signals in the analytics tier for alerting.</td>
+          <td><span class="mitre-codes">TA0001, TA0003, TA0004, TA0005, TA0009, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">Cloud Identity Abuse</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Access Broker</span><span class="t-tag">Insider Threats</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span> <span class="lake-badge lake-c" title="Compliance Analytics">C</span> <span class="lake-badge lake-f" title="Data Federation">F</span></div></td>
+          <td class="text-truncate">Cross-cloud identity correlation, AWS IAM role assumption chains, S3 data access patterns, Lambda execution anomalies, multi-cloud pivot detection</td>
+          <td class="text-truncate">Cross-cloud incident reconstruction —</td>
+          <td class="text-truncate">SOC 2 and NIST 800-53 cross-cloud audit evidence. Provides API activity audit trail for AWS resources. Federation preserves AWS data residency while enabling unified compliance reporting across Azure and AWS.</td>
+          <td class="text-truncate">AI agents join AWS CloudTrail events with Entra sign-in logs for cross-cloud identity investigation. Enables conversational queries like &quot;show me all AWS activity for this user in the last 30 days&quot; during multi-cloud incident triage.</td>
+        </tr>
+        <tr>
+          <td><strong>CrowdStrike Falcon Data Replicator</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Federated Sources</td>
+          <td><span class="chip chip-federated">Federated</span></td>
+          <td class="text-truncate">Not a real-time detection source — CrowdStrike alerts should be ingested via the native CrowdStrike Falcon connector for real-time detection. FDR provides the raw telemetry archive for deep investigation.</td>
+          <td><span class="mitre-codes">TA0002, TA0003, TA0005, TA0007, TA0008</span></td>
+          <td><div class="threats"><span class="t-tag">Infostealer</span><span class="t-tag">Malware</span><span class="t-tag">Human-Op Ransomware</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span> <span class="lake-badge lake-c" title="Compliance Analytics">C</span> <span class="lake-badge lake-f" title="Data Federation">F</span></div></td>
+          <td class="text-truncate">Retroactive IOC sweeps across years of endpoint telemetry, process injection pattern hunting, DLL sideloading identification, cross-fleet command-line fingerprinting on non-MDE endpoints</td>
+          <td class="text-truncate">Deep endpoint forensics from CrowdStrike-managed endpoints —</td>
+          <td class="text-truncate">Endpoint security audit evidence for environments using CrowdStrike. Supports NIST 800-53 SI (System and Information Integrity) controls. Federation avoids duplicating endpoint telemetry while maintaining audit access.</td>
+          <td class="text-truncate">AI agents query FDR telemetry for deep endpoint investigation on CrowdStrike-managed devices. Enables cross-vendor endpoint correlation — agents can compare CrowdStrike and MDE telemetry for the same incident.</td>
+        </tr>
+        <tr>
+          <td><strong>Cloudflare Security Logs</strong><span class="badge badge-nice">Nice-to-Have</span></td>
+          <td>Federated Sources</td>
+          <td><span class="chip chip-federated">Federated</span></td>
+          <td class="text-truncate">Not a real-time detection source — Cloudflare alerts should be handled by Cloudflare's native detection. Federated logs provide historical depth for web-facing attack investigation.</td>
+          <td><span class="mitre-codes">TA0001, TA0009, TA0010, TA0011</span></td>
+          <td><div class="threats"><span class="t-tag">AiTM Phishing</span><span class="t-tag">Phishing</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Nation-State Espionage</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span> <span class="lake-badge lake-c" title="Compliance Analytics">C</span> <span class="lake-badge lake-f" title="Data Federation">F</span></div></td>
+          <td class="text-truncate">Bot pattern analysis across extended time windows, credential stuffing campaign identification, API abuse detection, Zero Trust policy effectiveness analysis</td>
+          <td class="text-truncate">Complete web-facing attack timeline —</td>
+          <td class="text-truncate">Web application access logging for PCI-DSS Req 6 (web application security) and SOC 2 availability controls. Federation provides long-term WAF and access log retention.</td>
+          <td class="text-truncate">AI agents query Cloudflare logs for web-facing incident investigation. Enables correlation of external attack patterns with internal sign-in anomalies detected in Sentinel.</td>
+        </tr>
+        <tr>
+          <td><strong>GCP Cloud Audit and Security Logs</strong><span class="badge badge-nice">Nice-to-Have</span></td>
+          <td>Federated Sources</td>
+          <td><span class="chip chip-federated">Federated</span></td>
+          <td class="text-truncate">Not a real-time detection source — federated GCP data cannot drive analytics tier rules. Use data promotion for cross-cloud IOC alerting.</td>
+          <td><span class="mitre-codes">TA0001, TA0003, TA0004, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">Cloud Identity Abuse</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Access Broker</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span> <span class="lake-badge lake-c" title="Compliance Analytics">C</span> <span class="lake-badge lake-f" title="Data Federation">F</span></div></td>
+          <td class="text-truncate">Cross-cloud identity pivoting, GCP service account abuse patterns, Cloud Storage access anomalies, multi-cloud lateral movement detection</td>
+          <td class="text-truncate">Cross-cloud incident reconstruction for GCP environments —</td>
+          <td class="text-truncate">Cross-cloud audit evidence for SOC 2, NIST 800-53, and ISO 27001. Federation enables unified compliance reporting across Azure and GCP without data movement.</td>
+          <td class="text-truncate">AI agents join GCP audit events with Azure activity for multi-cloud investigation. Enables cross-cloud identity tracing during incident triage.</td>
+        </tr>
+        <tr>
+          <td><strong>HR and Identity Lifecycle Data</strong><span class="badge badge-should">Should-Have</span></td>
+          <td>Federated Sources</td>
+          <td><span class="chip chip-federated">Federated</span></td>
+          <td class="text-truncate">Not a real-time detection source — HR data provides enrichment context, not alert signals. Notebook-driven data promotion can surface termination-correlated risk scores in the analytics tier.</td>
+          <td><span class="mitre-codes">TA0009, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">Insider Threats</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Access Broker</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span> <span class="lake-badge lake-c" title="Compliance Analytics">C</span> <span class="lake-badge lake-f" title="Data Federation">F</span></div></td>
+          <td class="text-truncate">Termination-correlated data access spikes, role-change-preceded privilege escalation patterns, departing employee data staging behavior identification</td>
+          <td class="text-truncate">Insider threat investigation enrichment —</td>
+          <td class="text-truncate">Employment lifecycle audit trail for SOX (segregation of duties), HIPAA (workforce access review), and insider threat program compliance. Federation preserves HR data governance boundaries while enabling SOC access for investigations.</td>
+          <td class="text-truncate">Core enrichment source for AI agent insider threat triage. Agents join HR status with sign-in anomalies and data access patterns. Enables queries like &quot;is this user resigning or recently terminated?&quot; during behavioral alert investigation.</td>
+        </tr>
+        <tr>
+          <td><strong>Business Risk Signals and Fraud Analytics</strong><span class="badge badge-nice">Nice-to-Have</span></td>
+          <td>Federated Sources</td>
+          <td><span class="chip chip-federated">Federated</span></td>
+          <td class="text-truncate">Not a real-time detection source — risk scores computed externally. Data promotion via notebooks can surface high-risk entities in the analytics tier for real-time correlation with security events.</td>
+          <td><span class="mitre-codes">TA0009, TA0010</span></td>
+          <td><div class="threats"><span class="t-tag">Insider Threats</span><span class="t-tag">Data Exfiltration</span><span class="t-tag">Access Broker</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span> <span class="lake-badge lake-c" title="Compliance Analytics">C</span> <span class="lake-badge lake-f" title="Data Federation">F</span></div></td>
+          <td class="text-truncate">Correlation of elevated business risk scores with security behavioral anomalies, cross-domain risk pattern identification, privileged data access verification audit analysis</td>
+          <td class="text-truncate">Business fraud and risk context for security investigations —</td>
+          <td class="text-truncate">Fraud detection program audit evidence for SOX (financial controls) and industry-specific regulations. Federation enables SOC access to fraud analytics without duplicating sensitive financial data.</td>
+          <td class="text-truncate">AI agents enrich security investigations with business risk context. Enables queries like &quot;what is the risk score for this user and what triggered it?&quot;</td>
+        </tr>
+        <tr>
+          <td><strong>Asset Inventory and Vulnerability Data</strong><span class="badge badge-nice">Nice-to-Have</span></td>
+          <td>Federated Sources</td>
+          <td><span class="chip chip-federated">Federated</span></td>
+          <td class="text-truncate">Not a real-time detection source — asset data provides investigation enrichment. Data promotion can surface critical-asset-impacting alerts in the analytics tier with elevated priority.</td>
+          <td><span class="mitre-codes">TA0001, TA0007</span></td>
+          <td><div class="threats"><span class="t-tag">Vuln Exploitation</span><span class="t-tag">Cloud/Container Compromise</span><span class="t-tag">Access Broker</span></div></td>
+          <td><div class="lake-badges"><span class="lake-badge lake-k" title="KQL Query">K</span> <span class="lake-badge lake-g" title="Graph Analytics">G</span> <span class="lake-badge lake-n" title="Notebooks (PySpark)">N</span> <span class="lake-badge lake-a" title="Agent/MCP Access">A</span> <span class="lake-badge lake-c" title="Compliance Analytics">C</span> <span class="lake-badge lake-f" title="Data Federation">F</span></div></td>
+          <td class="text-truncate">Vulnerability-correlated exposure analysis, unpatched critical asset identification, asset ownership gap detection for orphaned systems</td>
+          <td class="text-truncate">Incident impact assessment enrichment —</td>
+          <td class="text-truncate">Asset inventory and vulnerability management evidence for NIST 800-53 CM (Configuration Management) and RA (Risk Assessment) families, PCI-DSS Req 6 (vulnerability management), and ISO 27001 asset management controls.</td>
+          <td class="text-truncate">AI agents enrich incident investigations with asset context — criticality, patch status, owner. Enables queries like &quot;is this compromised host a critical production server and when was it last patched?&quot; during triage.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Lake Surface Legend -->
+  <div class="lake-legend">
+    <h3>Lake Surface Key</h3>
+    <div class="lake-legend-item"><span class="lake-badge lake-k">K</span> KQL Query</div>
+    <div class="lake-legend-item"><span class="lake-badge lake-g">G</span> Graph Analytics</div>
+    <div class="lake-legend-item"><span class="lake-badge lake-n">N</span> Notebooks (PySpark)</div>
+    <div class="lake-legend-item"><span class="lake-badge lake-a">A</span> Agent / MCP Access</div>
+    <div class="lake-legend-item"><span class="lake-badge lake-c">C</span> Compliance Analytics</div>
+    <div class="lake-legend-item"><span class="lake-badge lake-f">F</span> Data Federation</div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Threat Key &mdash; Infostealer Malware&ndash;AI Supply Chain</h2>
+  </div>
+
+  <div class="key-table-wrap">
+    <table class="key-table">
+      <thead>
+        <tr>
+          <th style="width: 7%;">Code</th>
+          <th style="width: 35%;">Threat Name</th>
+          <th style="width: 58%;">Category</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="key-cat-row">
+          <td colspan="3">Identity &amp; Credential</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Infostealer Malware</span></td>
+          <td><strong>Infostealer Malware</strong></td>
+          <td>Identity &amp; Credential</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Adversary-in-the-Middle (AiTM) Phishing</span></td>
+          <td><strong>Adversary-in-the-Middle (AiTM)</strong></td>
+          <td>Identity &amp; Credential</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Device Code Phishing</span></td>
+          <td><strong>Password Spray &amp; Credential Stuffing</strong></td>
+          <td>Identity &amp; Credential</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">AI-Enhanced Social Engineering</span></td>
+          <td><strong>Token Theft &amp; Session Hijacking</strong></td>
+          <td>Identity &amp; Credential</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Cloud Identity Abuse</span></td>
+          <td><strong>Cloud Identity Abuse</strong></td>
+          <td>Identity &amp; Credential</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Password Spray Attacks</span></td>
+          <td><strong>On-Premises Identity Attacks</strong></td>
+          <td>Identity &amp; Credential</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Leaked Credentials</span></td>
+          <td><strong>MFA Bypass &amp; Fatigue</strong></td>
+          <td>Identity &amp; Credential</td>
+        </tr>
+        <tr class="key-cat-row">
+          <td colspan="3">Email &amp; Social Engineering</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Business Email Compromise</span></td>
+          <td><strong>Business Email Compromise</strong></td>
+          <td>Email &amp; Social Engineering</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Phishing Attempts</span></td>
+          <td><strong>Phishing &amp; Social Engineering</strong></td>
+          <td>Email &amp; Social Engineering</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Email Bombing and Vishing</span></td>
+          <td><strong>Malware Delivery via Email</strong></td>
+          <td>Email &amp; Social Engineering</td>
+        </tr>
+        <tr class="key-cat-row">
+          <td colspan="3">Malware &amp; Ransomware</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Malware Detection</span></td>
+          <td><strong>Malware Execution &amp; Persistence</strong></td>
+          <td>Malware &amp; Ransomware</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Ransomware and Human-Operated Attacks</span></td>
+          <td><strong>Ransomware &amp; Human-Operated Attacks</strong></td>
+          <td>Malware &amp; Ransomware</td>
+        </tr>
+        <tr class="key-cat-row">
+          <td colspan="3">Data Theft &amp; Exfiltration</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Data Exfiltration</span></td>
+          <td><strong>Data Exfiltration</strong></td>
+          <td>Data Theft &amp; Exfiltration</td>
+        </tr>
+        <tr class="key-cat-row">
+          <td colspan="3">Cloud &amp; Infrastructure</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Cloud Workload and Container Compromise</span></td>
+          <td><strong>Cloud Infrastructure Compromise</strong></td>
+          <td>Cloud &amp; Infrastructure</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Vulnerability Exploitation</span></td>
+          <td><strong>Vulnerability Exploitation</strong></td>
+          <td>Cloud &amp; Infrastructure</td>
+        </tr>
+        <tr class="key-cat-row">
+          <td colspan="3">Access &amp; Trust Abuse</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Access Broker Activity</span></td>
+          <td><strong>Insider Threat &amp; Privilege Abuse</strong></td>
+          <td>Access &amp; Trust Abuse</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Suspicious Mailbox Activities</span></td>
+          <td><strong>Third-Party &amp; Supply Chain Access</strong></td>
+          <td>Access &amp; Trust Abuse</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Insider Threats</span></td>
+          <td><strong>Trusted Relationship Abuse</strong></td>
+          <td>Access &amp; Trust Abuse</td>
+        </tr>
+        <tr class="key-cat-row">
+          <td colspan="3">Nation-State &amp; Advanced</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Nation-State Cyber Espionage</span></td>
+          <td><strong>Nation-State &amp; APT Operations</strong></td>
+          <td>Nation-State &amp; Advanced</td>
+        </tr>
+        <tr class="key-cat-row">
+          <td colspan="3">AI &amp; Agent</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">AI System Attacks</span></td>
+          <td><strong>AI System Attacks</strong></td>
+          <td>AI &amp; Agent</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">AI Agent Runtime Exploitation</span></td>
+          <td><strong>AI Agent Runtime Exploitation</strong></td>
+          <td>AI &amp; Agent</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">AI Agent Data Leakage</span></td>
+          <td><strong>AI-Powered Social Engineering</strong></td>
+          <td>AI &amp; Agent</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">Agentic Identity Compromise</span></td>
+          <td><strong>AI Agent Permission Abuse</strong></td>
+          <td>AI &amp; Agent</td>
+        </tr>
+        <tr>
+          <td><span class="t-tag">AI Supply Chain</span></td>
+          <td><strong>AI Supply Chain Compromise</strong></td>
+          <td>AI &amp; Agent</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend-wrap">
+    <h3>MITRE ATT&amp;CK Tactic Legend (v18.1)</h3>
+    <div class="legend-grid">
+      <div class="legend-item"><code>TA0001</code> Initial Access</div>
+      <div class="legend-item"><code>TA0002</code> Execution</div>
+      <div class="legend-item"><code>TA0003</code> Persistence</div>
+      <div class="legend-item"><code>TA0004</code> Privilege Escalation</div>
+      <div class="legend-item"><code>TA0005</code> Defense Evasion</div>
+      <div class="legend-item"><code>TA0006</code> Credential Access</div>
+      <div class="legend-item"><code>TA0007</code> Discovery</div>
+      <div class="legend-item"><code>TA0008</code> Lateral Movement</div>
+      <div class="legend-item"><code>TA0009</code> Collection</div>
+      <div class="legend-item"><code>TA0010</code> Exfiltration</div>
+      <div class="legend-item"><code>TA0011</code> Command and Control</div>
+      <div class="legend-item"><code>TA0040</code> Impact</div>
+      <div class="legend-item"><code>TA0042</code> Resource Development</div>
+      <div class="legend-item"><code>TA0043</code> Reconnaissance</div>
+    </div>
+  </div>
+
+  <div class="table-footer">
+    v3.1 &mdash; April 2026 &mdash; socautomators.substack.com
+  </div>
+
+</body>
+</html>
