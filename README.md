@@ -6,10 +6,10 @@
 
 ## What's Here
 
-| Folder     | Content                                                              |
-| ---------- | -------------------------------------------------------------------- |
-| `docs/`    | Threat research, DBIR analysis, blog post drafts and companion data |
-| `images/`  | Diagrams, screenshots, and visual assets used in blog posts         |
+| Folder     | Content                                                                       |
+| ---------- | ----------------------------------------------------------------------------- |
+| `docs/`    | Threat research, Soc Design/Architecture, blog post drafts and companion data |
+| `images/`  | Diagrams, screenshots, and visual assets used in blog posts                   |
 
 ---
 
@@ -20,11 +20,6 @@
 ---
 
 ## Docs Index
-
-- [2025 DBIR Data Breach Investigations Report](docs/2025-dbir-data-breach-investigations-report.md) — Full markdown extraction of the Verizon 2025 DBIR
-- [2025 DBIR Threat Research Companion](docs/2025-dbir-threat-research-companion.md) — SOCAutomators analysis of key DBIR findings
-- [Top Threats 2026](docs/top-threats-2026.md) — Threat landscape analysis based on MDDR 2025
-- [Building an Agentic SOC in VS Code](docs/blog-vscode-agentic-soc-setup.md) — Blog post: IDE setup guide for agentic security development
 
 ---
 
