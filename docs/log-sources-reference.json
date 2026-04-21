@@ -2,8 +2,8 @@
   "metadata": {
     "title": "Log Sources Reference — Threat-Informed Defense Series",
     "slug": "log-sources-reference",
-    "version": "3.1",
-    "date": "2026-04-13",
+    "version": "4.0",
+    "date": "2026-04-21",
     "author": "Mike Palitto",
     "organization": "SOC Automators",
     "platform": "socautomators.substack.com",
@@ -15,6 +15,7 @@
       "Identity & Access",
       "Endpoint",
       "Cloud & Infrastructure",
+      "AI & Agent Telemetry",
       "Federated Sources"
     ],
     "mitre_attack": {

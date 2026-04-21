@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Log Sources Reference v3.1 &mdash; Threat-Informed Defense Series</title>
+  <title>Log Sources Reference v4.0 &mdash; Threat-Informed Defense Series</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -376,6 +376,8 @@
       <dd>Active DCR split. Alert-grade events &rarr; Analytics for real-time detection. Full raw stream &rarr; Data Lake for forensics and hunting.</dd>
       <dt><span class="chip chip-analytics">Analytics Mirror</span></dt>
       <dd>Analytics data replicates to Data Lake via continuous data export rules (minutes-to-hours delay). Not a real-time split.</dd>
+      <dt><span class="chip chip-federated">Federated</span></dt>
+      <dd>Data queried in place from external sources (Azure Databricks, ADLS Gen 2, Microsoft Fabric) without ingestion into Sentinel. Zero ingestion cost. Federated tables appear alongside native tables and are queryable via KQL, notebooks, and MCP tools.</dd>
     </dl>
   </div>
 
@@ -1097,7 +1099,7 @@
   </div>
 
   <div class="table-footer">
-    v3.1 &mdash; April 2026 &mdash; socautomators.substack.com
+    v4.0 &mdash; April 2026 &mdash; socautomators.substack.com
   </div>
 
 </body>

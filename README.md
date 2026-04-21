@@ -6,20 +6,35 @@
 
 ## What's Here
 
-| Folder     | Content                                                                       |
-| ---------- | ----------------------------------------------------------------------------- |
-| `docs/`    | Threat research, Soc Design/Architecture, blog post drafts and companion data |
-| `images/`  | Diagrams, screenshots, and visual assets used in blog posts                   |
+| Folder     | Content                                                              |
+| ---------- | -------------------------------------------------------------------- |
+| `docs/`    | Reference data, companion articles, and downloadable assets          |
+| `images/`  | Diagrams, reference charts, and visual assets used in blog posts     |
+
+---
+
+## Log Sources Reference (v4.0)
+
+The **37 Log Sources Reference** is a companion to the *What to Log in Your Next-Gen SIEM* sub-series in the [Threat-Informed Defense](https://socautomators.substack.com/) series. Every source is mapped to MITRE ATT&CK v18.1 tactics, ingestion tier, and five SOC use cases: detection, forensics, hunting, compliance, and AI agent operations.
+
+**Downloads:**
+
+| Format | File | Use Case |
+| ------ | ---- | -------- |
+| Interactive HTML | [`log-sources-reference.html`](docs/log-sources-reference.html) | Open in any browser — sortable, searchable |
+| Excel (.xlsx) | [`log-sources-reference.xlsx`](docs/log-sources-reference.xlsx) | Filter, sort, and customize in Excel or Sheets |
+| JSON | [`log-sources-reference.json`](docs/log-sources-reference.json) | Programmatic access — feed to scripts, agents, dashboards |
+| SVG | [`log-sources-reference.svg`](images/log-sources-reference.svg) | Scalable vector for presentations and embedding |
+| PNG | [`log-sources-reference.png`](images/log-sources-reference.png) | Full reference chart image (1600px wide) |
+| JPG | [`log-sources-reference.jpg`](images/log-sources-reference.jpg) | Compressed image for blog and social sharing |
+
+**Companion article:** [What to Log in Your Next-Gen SIEM — Pillar](docs/what-to-log-next-gen-siem-pillar.md)
 
 ---
 
 ## Related Projects
 
 - **[Agentic SOC](https://github.com/mikepalitto/agentic-soc)** *(private)* — The AI agent framework for SOC automation discussed in the blog
-
----
-
-## Docs Index
 
 ---
 
