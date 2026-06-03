@@ -1,0 +1,59 @@
+// =============================================================================
+// Promoted Analytics Rule: Lateral Movement Chain Detection (Parameterized)
+// Threats:  Cloud Identity Abuse (Ransomware), Ransomware and Human-Operated
+//           Attacks
+// MITRE:    TA0008 Lateral Movement, T1078 Valid Accounts, T1021 Remote Services
+// Companion to Article 03: Hunting at Machine Speed
+// https://socautomators.substack.com/p/hunting-at-machine-speed-kql-on-the
+// =============================================================================
+//
+// This is the production-ready version of the lateral movement hunt published
+// inline in Article 03. The hunt-to-detection pipeline turns a validated
+// manual query into a Scheduled Analytics Rule with parameterized thresholds
+// and an explicit IT-admin exclusion list.
+//
+// Scheduled Analytics Rule recommended settings:
+//   Schedule:       Daily
+//   Run lookback:   1d
+//   Severity:       High
+//   Entities:       UserPrincipalName, DeviceId
+//   Alert grouping: Group by UserPrincipalName for 24h
+//
+// IMPORTANT — Unified incident model:
+// When Sentinel is onboarded to the Defender portal, Defender XDR owns the
+// incident. Re-validate any automation rules and Logic Apps playbooks attached
+// to this detection against the unified incident schema before enabling in
+// production. See Article 02:
+// https://socautomators.substack.com/p/migrating-to-unified-secops-without
+//
+// Parameters:
+//   hop_window    - sliding window for unique-device counting (default 48h)
+//   min_hops      - threshold for unique devices in window (default 5)
+//   exclude_list  - known IT-admin / deployment service accounts to ignore
+// =============================================================================
+
+let hop_window = 48h;
+let min_hops = 5;
+let exclude_list = dynamic([
+    "svc-itadmin@contoso.com",
+    "svc-deploy@contoso.com"
+]);
+SigninLogs
+| where TimeGenerated > ago(1d)
+| where ResultType == 0
+| where UserPrincipalName !in (exclude_list)
+| where isnotempty(DeviceDetail_dynamic.deviceId)
+| extend DeviceId = tostring(DeviceDetail_dynamic.deviceId)
+| summarize
+    UniqueDevices = dcount(DeviceId),
+    DeviceList = make_set(DeviceId, 50),
+    FirstSeen = min(TimeGenerated),
+    LastSeen = max(TimeGenerated)
+    by UserPrincipalName, bin(TimeGenerated, hop_window)
+| where UniqueDevices >= min_hops
+| project
+    UserPrincipalName,
+    UniqueDevices,
+    DeviceList,
+    FirstSeen,
+    LastSeen

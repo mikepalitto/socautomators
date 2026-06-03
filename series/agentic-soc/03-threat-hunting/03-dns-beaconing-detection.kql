@@ -1,0 +1,45 @@
+// =============================================================================
+// Hunt: DNS Beaconing Detection
+// Threats:  Nation-State Cyber Espionage (DNS Tunneling)
+// MITRE:    TA0011 Command and Control, T1071 Application Layer Protocol,
+//           T1572 Protocol Tunneling
+// Companion to Article 03: Hunting at Machine Speed
+// https://socautomators.substack.com/p/hunting-at-machine-speed-kql-on-the
+// =============================================================================
+//
+// Hypothesis: C2 beaconing manifests as periodic DNS queries to low-reputation
+// domains with high-entropy subdomain labels. Distinguishing low-and-slow C2
+// from legitimate periodic services requires months of DNS data — not days.
+//
+// The long-duration filter (30+ days of sustained querying) is what separates
+// C2 hunting from alert noise. Legitimate services produce periodic queries
+// too; they do not generate high-entropy, variable-length subdomains to the
+// same domain for months.
+//
+// Parameters:
+//   lookback     - DNS history window (default 180d)
+//   min_queries  - minimum query volume threshold (default 100)
+// =============================================================================
+
+let lookback = 180d;
+let min_queries = 100;
+DnsEvents
+| where TimeGenerated > ago(lookback)
+| where QueryType in ("A", "AAAA")
+| extend TopDomain = tostring(split(Name, ".")[-2])
+| extend SubDomain = tostring(split(Name, ".")[0])
+| where strlen(SubDomain) > 8
+| summarize
+    QueryCount = count(),
+    UniqueSubdomains = dcount(SubDomain),
+    AvgSubdomainLength = avg(strlen(SubDomain)),
+    DistinctClients = dcount(ClientIP),
+    FirstQuery = min(TimeGenerated),
+    LastQuery = max(TimeGenerated)
+    by TopDomain
+| where QueryCount > min_queries
+| where UniqueSubdomains > 50
+| where AvgSubdomainLength > 15
+| extend DurationDays = datetime_diff('day', LastQuery, FirstQuery)
+| where DurationDays > 30
+| sort by UniqueSubdomains desc

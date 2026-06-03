@@ -1,0 +1,47 @@
+// =============================================================================
+// Hunt: Authentication Geography Baseline
+// Threats:  Infostealer Malware (Token Theft), Vulnerability Exploitation
+//           (Password Spray / Credential Stuffing)
+// MITRE:    TA0006 Credential Access, T1078 Valid Accounts
+// Companion to Article 03: Hunting at Machine Speed
+// https://socautomators.substack.com/p/hunting-at-machine-speed-kql-on-the
+// =============================================================================
+//
+// Hypothesis: Compromised session tokens are being replayed from geographies
+// inconsistent with the user's established authentication pattern, detectable
+// via SigninLogs over 90+ days of lake data.
+//
+// Build a per-user baseline of sign-in locations over 180 days, then identify
+// recent (last 7 days) sign-ins from locations the user has never used.
+//
+// Parameters:
+//   baseline_window  - lookback for normal-behavior baseline (default 180d)
+//   recent_window    - recent activity to compare against baseline (default 7d)
+// =============================================================================
+
+let baseline_window = 180d;
+let recent_window = 7d;
+let geo_baseline = SigninLogs
+    | where TimeGenerated between (ago(baseline_window) .. ago(recent_window))
+    | where ResultType == 0
+    | summarize
+        SignInCount = count(),
+        DistinctLocations = dcount(Location),
+        LocationList = make_set(Location, 20)
+        by UserPrincipalName
+    | where SignInCount > 10;
+let recent_activity = SigninLogs
+    | where TimeGenerated > ago(recent_window)
+    | where ResultType == 0
+    | summarize RecentLocations = make_set(Location, 20)
+        by UserPrincipalName;
+geo_baseline
+| join kind=inner recent_activity on UserPrincipalName
+| mv-expand RecentLocation = RecentLocations
+| where not(RecentLocation in (LocationList))
+| project
+    UserPrincipalName,
+    NewLocation = tostring(RecentLocation),
+    BaselineLocations = LocationList,
+    BaselineSignIns = SignInCount
+| sort by UserPrincipalName asc

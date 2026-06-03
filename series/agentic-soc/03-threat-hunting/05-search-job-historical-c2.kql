@@ -1,0 +1,48 @@
+// =============================================================================
+// Search Job: Full-Year Outbound Connection Analysis (Historical C2 Hunt)
+// Threats:  Nation-State Cyber Espionage (DNS Tunneling, C2 over HTTPS)
+// MITRE:    TA0011 Command and Control, T1071 Application Layer Protocol
+// Companion to Article 03: Hunting at Machine Speed
+// https://socautomators.substack.com/p/hunting-at-machine-speed-kql-on-the
+// =============================================================================
+//
+// Some hunts need time windows that exceed what interactive KQL can handle.
+// A query spanning a full year of firewall session logs will time out in the
+// portal. Submit this as a Sentinel Search Job — it runs asynchronously
+// against the data lake and delivers results to a dedicated search results
+// table. Plan for hours of latency, not minutes.
+//
+// Hypothesis: Long-lived, low-volume outbound connections to a small number of
+// destinations are characteristic of low-and-slow C2 channels that survive
+// for months. Filter on duration > 90 days, very few distinct source devices,
+// and sustained connection counts.
+//
+// HOW TO RUN:
+// Submit this as a Search Job via the Sentinel portal or REST API. Do not
+// execute interactively against a full year of CommonSecurityLog data — the
+// volume will exceed interactive query limits.
+//
+// Parameters:
+//   lookback      - historical window (designed for 365d Search Job)
+//   min_duration  - minimum sustained-connection duration in days
+//   max_sources   - upper bound on distinct source devices (C2 is narrow)
+//   min_count     - minimum connection volume threshold
+// =============================================================================
+
+CommonSecurityLog
+| where TimeGenerated > ago(365d)
+| where DeviceAction == "Allow"
+| where DestinationPort in (443, 80, 53, 8080)
+| summarize
+    ConnectionCount = count(),
+    BytesSent = sum(SentBytes),
+    BytesReceived = sum(ReceivedBytes),
+    FirstConnection = min(TimeGenerated),
+    LastConnection = max(TimeGenerated),
+    DistinctSourceDevices = dcount(DeviceName)
+    by DestinationIP, DestinationPort
+| extend DurationDays = datetime_diff('day', LastConnection, FirstConnection)
+| where DurationDays > 90
+| where DistinctSourceDevices <= 3
+| where ConnectionCount > 500
+| sort by DurationDays desc, ConnectionCount desc

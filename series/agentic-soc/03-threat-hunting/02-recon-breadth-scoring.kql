@@ -1,0 +1,48 @@
+// =============================================================================
+// Hunt: Reconnaissance Breadth Scoring
+// Threats:  Suspicious Mailbox Activities (Living off the Land),
+//           Cloud Identity Abuse
+// MITRE:    TA0007 Discovery
+// Companion to Article 03: Hunting at Machine Speed
+// https://socautomators.substack.com/p/hunting-at-machine-speed-kql-on-the
+// =============================================================================
+//
+// Hypothesis: An attacker enumerating resources will touch a wider breadth of
+// systems than a single identity normally does. The behavior plays out over
+// days or weeks, staying below per-session anomaly thresholds. Find identities
+// whose daily resource breadth spiked 3+ standard deviations above their own
+// 90-day baseline.
+//
+// Parameters:
+//   baseline_period - lookback window for personal baseline (default 90d)
+//   recent_period   - recent window to score against baseline (default 7d)
+// =============================================================================
+
+let baseline_period = 90d;
+let recent_period = 7d;
+let baseline_stats = SigninLogs
+    | where TimeGenerated between (ago(baseline_period) .. ago(recent_period))
+    | where ResultType == 0
+    | summarize DailyResourceCount = dcount(ResourceDisplayName)
+        by UserPrincipalName, bin(TimeGenerated, 1d)
+    | summarize
+        BaselineAvg = avg(DailyResourceCount),
+        BaselineStdDev = stdev(DailyResourceCount)
+        by UserPrincipalName
+    | where BaselineAvg > 0;
+let recent_activity = SigninLogs
+    | where TimeGenerated > ago(recent_period)
+    | where ResultType == 0
+    | summarize RecentDailyResources = dcount(ResourceDisplayName)
+        by UserPrincipalName, bin(TimeGenerated, 1d);
+recent_activity
+| join kind=inner baseline_stats on UserPrincipalName
+| where RecentDailyResources > BaselineAvg + (3 * BaselineStdDev)
+| project
+    UserPrincipalName,
+    Day = TimeGenerated,
+    RecentDailyResources,
+    BaselineAvg = round(BaselineAvg, 1),
+    BaselineStdDev = round(BaselineStdDev, 1),
+    DeviationFactor = round((RecentDailyResources - BaselineAvg) / BaselineStdDev, 1)
+| sort by DeviationFactor desc

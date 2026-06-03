@@ -1,0 +1,82 @@
+// =============================================================================
+// Cross-Vendor Endpoint Hunt — MDE + Federated CrowdStrike FDR
+// Threats:  Cloud Identity Abuse, Ransomware and Human-Operated Attacks
+// MITRE:    TA0008 Lateral Movement, T1059 Command and Scripting Interpreter
+// Companion to Article 03: Hunting at Machine Speed
+// https://socautomators.substack.com/p/hunting-at-machine-speed-kql-on-the
+// =============================================================================
+//
+// TEMPLATE — REVIEW BEFORE PRODUCTION USE.
+//
+// Sentinel data federation (Preview) lets you query data that lives in
+// Microsoft Fabric, Azure Data Lake Storage Gen2, or Azure Databricks without
+// re-ingesting it into Sentinel. Federated tables appear under
+//   Lake tables > System tables > Federated tables
+// in the Sentinel VS Code extension. The analyst does not need to know whether
+// a table is native or federated — KQL syntax is identical.
+//
+// This template joins native MDE DeviceProcessEvents with a federated
+// CrowdStrike FDR process-execution telemetry table. The federated table name
+// follows the convention <tableName>_<connectorInstance>; replace
+// CrowdStrikeFDR_Events_<connector> with the actual federated table name
+// configured for your tenant.
+//
+// PRE-REQS:
+//   - Sentinel data federation enabled and the CrowdStrike FDR connector
+//     configured (Preview — verify feature status before relying on it for
+//     production detection).
+//   - MDE deployed on the subset of endpoints to compare against.
+//
+// Hypothesis: A suspicious process tree appears on an MDE-protected host AND
+// the same parent-child pattern appears on a host that is only covered by
+// CrowdStrike. Either the same operator is moving across both EDR estates or
+// the technique is more widespread than either tool sees alone.
+//
+// Parameters:
+//   lookback         - shared time window across both data sources (default 7d)
+//   suspicious_parents - process names to scope the hunt
+// =============================================================================
+
+let lookback = 7d;
+let suspicious_parents = dynamic([
+    "powershell.exe",
+    "pwsh.exe",
+    "cmd.exe",
+    "wscript.exe",
+    "cscript.exe",
+    "rundll32.exe"
+]);
+let mde_events = DeviceProcessEvents
+    | where Timestamp > ago(lookback)
+    | where InitiatingProcessFileName in~ (suspicious_parents)
+    | project
+        Source = "MDE",
+        DeviceName,
+        Timestamp,
+        ParentProcess = InitiatingProcessFileName,
+        ChildProcess = FileName,
+        CommandLine = ProcessCommandLine,
+        AccountName;
+let fdr_events = CrowdStrikeFDR_Events_<connector>
+    | where Timestamp > ago(lookback)
+    | where ParentImageFileName in~ (suspicious_parents)
+    | project
+        Source = "CrowdStrike",
+        DeviceName = ComputerName,
+        Timestamp,
+        ParentProcess = ParentImageFileName,
+        ChildProcess = ImageFileName,
+        CommandLine,
+        AccountName = UserName;
+union mde_events, fdr_events
+| summarize
+    SourceCount = dcount(Source),
+    Sources = make_set(Source),
+    DeviceCount = dcount(DeviceName),
+    Devices = make_set(DeviceName, 25),
+    FirstSeen = min(Timestamp),
+    LastSeen = max(Timestamp),
+    Examples = make_list(CommandLine, 5)
+    by ParentProcess, ChildProcess
+| where SourceCount > 1
+| sort by DeviceCount desc

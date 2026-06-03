@@ -8,8 +8,22 @@
 
 | Folder     | Content                                                              |
 | ---------- | -------------------------------------------------------------------- |
+| `series/`  | Per-article companion code, organized by series and article number   |
 | `docs/`    | Reference data, companion articles, and downloadable assets          |
 | `images/`  | Diagrams, reference charts, and visual assets used in blog posts     |
+
+---
+
+## Series Code
+
+### The Agentic SOC on Microsoft Sentinel
+
+The successor series to *Threat-Informed Defense: Tools, Logs, and Agents*. Three arcs: Foundation, Operating Model, Implementation.
+
+- [`series/agentic-soc/`](series/agentic-soc/) — series index, article folders, and KQL libraries
+
+Currently shipped:
+- [Article 03 — Hunting at Machine Speed: KQL on the Sentinel Data Lake](series/agentic-soc/03-threat-hunting/) — six adaptable KQL hunts (geography baseline, recon breadth, DNS beaconing, lateral movement promoted rule, Search Job, federated cross-vendor)
 
 ---
 
