@@ -1,0 +1,20 @@
+{
+  "name": "socautomators",
+  "slug": "socautomators",
+  "description": "The successor series to *Threat-Informed Defense: Tools, Logs, and Agents*. Three arcs: Foundation, Operating Model, Implementation.",
+  "persona": "productivity",
+  "environment": "native",
+  "environment_reason": "",
+  "status": "active",
+  "created": "2026-10-30",
+  "tags": [],
+  "github_backed": true,
+  "storage_path": "C:\\Users\\mikepalitto\\GitHubProjects\\socautomators",
+  "remote": "https://github.com/mikepalitto/socautomators.git",
+  "backup": "github-private",
+  "sensitivity": "internal",
+  "wiki": false,
+  "workiq_enabled": true,
+  "enabled_skills": [],
+  "_note": "Back-filled by project-scaffold audit; review persona, sensitivity and tags."
+}
